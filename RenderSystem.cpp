@@ -24,7 +24,15 @@ bool RenderSystem::Initialize()
         std::cout << "Failed to create window" << std::endl;
         return false;
     }
-    return false;
+
+    bool contextSuccess = CreateContext();
+    if(!contextSuccess)
+    {
+        std::cout << "Failed to create context" << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 bool RenderSystem::CreateWindow()
@@ -33,8 +41,44 @@ bool RenderSystem::CreateWindow()
     return mWindow != nullptr;
 }
 
+bool RenderSystem::CreateContext()
+{
+    mContext = SDL_GL_CreateContext(mWindow);
+    return mContext != NULL;
+}
+
 int main(int argc, char* argv[])
 {
+    bool running = true;
     RenderSystem rs;
-    rs.Initialize();
+    if(rs.Initialize())
+    {
+        while(running)
+        {
+            SDL_Event event;
+            while(SDL_PollEvent(&event))
+            {
+                if(event.type == SDL_KEYDOWN)
+                {
+                    switch(event.key.keysym.sym)
+                    {
+                        case SDLK_ESCAPE:
+                            running = false;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else if(event.type == SDL_QUIT)
+                {
+                    running = false;
+                }
+
+                glViewport(0, 0, 1024, 768);
+                glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
+                glClear(GL_COLOR_BUFFER_BIT);
+                SDL_GL_SwapWindow(rs.Window());
+            }
+        }
+    }
 }

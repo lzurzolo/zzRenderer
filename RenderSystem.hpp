@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+#include <GL/gl.h>
 
 class RenderSystem
 {
@@ -15,10 +17,13 @@ public:
     ~RenderSystem();
 
     bool Initialize();
+    SDL_Window* Window() { return mWindow; }
 private:
     bool CreateWindow();
+    bool CreateContext();
 
     SDL_Window* mWindow;
+    SDL_GLContext mContext;
 };
 
 
