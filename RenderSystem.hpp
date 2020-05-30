@@ -5,6 +5,8 @@
 #ifndef ZZRENDERER_RENDERSYSTEM_HPP
 #define ZZRENDERER_RENDERSYSTEM_HPP
 
+#include <iostream>
+#include <SDL2/SDL.h>
 
 class RenderSystem
 {
@@ -13,6 +15,10 @@ public:
     ~RenderSystem();
 
     bool Initialize();
+private:
+    bool CreateWindow();
+
+    SDL_Window* mWindow;
 };
 
 
