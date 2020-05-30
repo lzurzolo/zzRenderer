@@ -32,6 +32,13 @@ bool RenderSystem::Initialize()
         return false;
     }
 
+    bool apiSuccess = InitAPI();
+    if(!apiSuccess)
+    {
+        std::cout << "Failed to initialize API" << std::endl;
+        return false;
+    }
+
     return true;
 }
 
@@ -45,6 +52,23 @@ bool RenderSystem::CreateContext()
 {
     mContext = SDL_GL_CreateContext(mWindow);
     return mContext != NULL;
+}
+
+bool RenderSystem::InitAPI()
+{
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+    glewExperimental = GL_TRUE;
+    GLenum glewError = glewInit();
+    if(glewError != GLEW_OK)
+    {
+        std::cout << "Error initializing GLEW! " << glewGetErrorString(glewError) << std::endl;
+        return false;
+    }
+
+    return true;
 }
 
 int main(int argc, char* argv[])

@@ -7,8 +7,8 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
-#include <GL/gl.h>
 #include "Mesh.hpp"
 
 class RenderSystem
@@ -22,6 +22,7 @@ public:
 private:
     bool CreateWindow();
     bool CreateContext();
+    bool InitAPI();
 
     SDL_Window* mWindow;
     SDL_GLContext mContext;
