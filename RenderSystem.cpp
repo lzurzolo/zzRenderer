@@ -8,7 +8,10 @@ RenderSystem::RenderSystem()
 = default;
 
 RenderSystem::~RenderSystem()
-= default;
+{
+    DestroyWindow();
+    KillAPI();
+}
 
 bool RenderSystem::Initialize()
 {
@@ -71,6 +74,16 @@ bool RenderSystem::InitAPI()
     return true;
 }
 
+void RenderSystem::DestroyWindow()
+{
+    SDL_DestroyWindow(mWindow);
+}
+
+void RenderSystem::KillAPI()
+{
+    SDL_Quit();
+}
+
 int main(int argc, char* argv[])
 {
     bool running = true;
@@ -82,6 +95,9 @@ int main(int argc, char* argv[])
         vertices.push_back(Vertex3{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 0.0f}});
         vertices.push_back(Vertex3{glm::vec3{0.5f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}});
 
+        std::string mod = "Box.gltf";
+
+        Model test {mod};
         Mesh triangle {vertices};
 
         GLuint VAO;
@@ -143,9 +159,13 @@ int main(int argc, char* argv[])
         while(running)
         {
             SDL_Event event;
-            while(SDL_PollEvent(&event))
+            if(SDL_PollEvent(&event))
             {
-                if(event.type == SDL_KEYDOWN)
+                if(event.type == SDL_QUIT)
+                {
+                    running = false;
+                }
+                else if(event.type == SDL_KEYDOWN)
                 {
                     switch(event.key.keysym.sym)
                     {
@@ -155,10 +175,6 @@ int main(int argc, char* argv[])
                         default:
                             break;
                     }
-                }
-                else if(event.type == SDL_QUIT)
-                {
-                    running = false;
                 }
 
                 glViewport(0, 0, 1024, 768);

@@ -1,3 +1,6 @@
 [submodule "cmake/sdl2"]
 	path = cmake/sdl2
 	url = https://github.com/aminosbh/sdl2-cmake-modules.git
+[submodule "external/tinygltf"]
+	path = external/tinygltf
+	url = https://github.com/syoyo/tinygltf.git

@@ -9,7 +9,7 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
-#include "Mesh.hpp"
+#include "Model.hpp"
 
 class RenderSystem
 {
@@ -23,6 +23,9 @@ private:
     bool CreateWindow();
     bool CreateContext();
     bool InitAPI();
+
+    void DestroyWindow();
+    void KillAPI();
 
     SDL_Window* mWindow;
     SDL_GLContext mContext;
