@@ -23,12 +23,14 @@ private:
     bool CreateWindow();
     bool CreateContext();
     bool InitAPI();
+    void Draw();
 
     void DestroyWindow();
     void KillAPI();
 
     SDL_Window* mWindow;
     SDL_GLContext mContext;
+    std::vector<Model> mModels;
 };
 
 

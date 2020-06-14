@@ -16,6 +16,52 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
         if(bufferView.target == 0) continue;
 
         const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
+
+        // indices as per gltf spec
+        if(bufferView.target == 34963)
+        {
+            glGenBuffers(1, &mEBO);
+            glBindBuffer(bufferView.target, mEBO);
+            glBufferData(bufferView.target, bufferView.byteLength,
+                    &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+        }
+
+        // vertices as per gltf spec
+        if(bufferView.target == 34962)
+        {
+            glGenBuffers(1, &mVBO);
+            glBindBuffer(bufferView.target, mVBO);
+            glBufferData(bufferView.target, bufferView.byteLength,
+                    &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+        }
+    }
+
+    for(size_t i = 0; i < mesh.primitives.size(); ++i)
+    {
+        tinygltf::Primitive primitive = mesh.primitives[i];
+        for(auto& attrib : primitive.attributes)
+        {
+            tinygltf::Accessor accessor = model.accessors[attrib.second];
+            int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+            glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+            int size = 1;
+            if(accessor.type != TINYGLTF_TYPE_SCALAR)
+            {
+                size = accessor.type;
+            }
+
+            int vaa = -1;
+            if (attrib.first == "POSITION") vaa = 0;
+            if (attrib.first == "NORMAL") vaa = 1;
+            if (vaa > -1)
+            {
+                glEnableVertexAttribArray(vaa);
+                glVertexAttribPointer(vaa, size, accessor.componentType,
+                        accessor.normalized ? GL_TRUE : GL_FALSE,
+                        stride, BUFFER_OFFSET(accessor.byteOffset));
+            }
+        }
     }
 }
 

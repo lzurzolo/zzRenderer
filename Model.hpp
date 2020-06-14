@@ -21,6 +21,7 @@ public:
     ~Mesh();
 
     std::vector<Vertex3>& Vertices() { return mVertices; }
+    GLuint EBO() const { return mEBO; };
 
 private:
     std::vector<Vertex3> mVertices;
@@ -35,6 +36,8 @@ public:
     Model();
     Model(const std::string& modelName);
     ~Model();
+    GLuint VAO() const { return mVAO; }
+    std::vector<Mesh>& GetMeshes() { return mMeshes; }
 private:
     std::vector<Mesh> mMeshes;
     GLuint mVAO;

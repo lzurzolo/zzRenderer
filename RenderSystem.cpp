@@ -74,6 +74,15 @@ bool RenderSystem::InitAPI()
     return true;
 }
 
+void RenderSystem::Draw()
+{
+    for(auto m : mModels)
+    {
+        glBindVertexArray(m.VAO());
+        auto meshes = m.GetMeshes();
+    }
+}
+
 void RenderSystem::DestroyWindow()
 {
     SDL_DestroyWindow(mWindow);
