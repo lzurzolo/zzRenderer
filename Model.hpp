@@ -16,27 +16,32 @@ class Mesh
 {
 public:
     Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
-    Mesh(std::string meshName);
-    Mesh(std::vector<Vertex3> v);
+    explicit Mesh(std::string meshName);
+    explicit Mesh(std::vector<Vertex3> v);
     ~Mesh();
 
     std::vector<Vertex3>& Vertices() { return mVertices; }
-    GLuint EBO() const { return mEBO; };
+    [[nodiscard]] GLuint EBO() const { return mEBO; };
+    [[nodiscard]] GLint PrimitiveMode() const { return mPrimitiveMode; }
+    [[nodiscard]] GLint IndexComponenType() const { return mIndexComponentType; }
+    [[nodiscard]] GLint IndexCount() const { return mIndexCount; }
 
 private:
     std::vector<Vertex3> mVertices;
     GLuint mVBO;
     GLuint mEBO;
-    GLint mDrawMode;
+    GLint mPrimitiveMode;
+    GLint mIndexComponentType;
+    GLint mIndexCount;
 };
 
 class Model
 {
 public:
     Model();
-    Model(const std::string& modelName);
+    explicit Model(const std::string& modelName);
     ~Model();
-    GLuint VAO() const { return mVAO; }
+    [[nodiscard]] GLuint VAO() const { return mVAO; }
     std::vector<Mesh>& GetMeshes() { return mMeshes; }
 private:
     std::vector<Mesh> mMeshes;
@@ -45,7 +50,5 @@ private:
     void BindModelNodes(tinygltf::Model &model, tinygltf::Node &node);
     void BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
 };
-
-
 
 #endif //ZZRENDERER_MODEL_HPP

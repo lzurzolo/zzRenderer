@@ -14,7 +14,7 @@ struct Vertex3
         position = p;
         color = c;
     }
-    glm::vec3 position;
-    glm::vec3 color;
+    glm::vec3 position{};
+    glm::vec3 color{};
 };
 #endif //ZZRENDERER_VERTEX3_HPP

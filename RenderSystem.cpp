@@ -3,6 +3,9 @@
 //
 
 #include "RenderSystem.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem()
 = default;
@@ -20,6 +23,9 @@ bool RenderSystem::Initialize()
         SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
         return false;
     }
+
+    mWindowWidth = 1024;
+    mWindowHeight = 768;
 
     bool windowSuccess = CreateWindow();
     if(!windowSuccess)
@@ -47,7 +53,8 @@ bool RenderSystem::Initialize()
 
 bool RenderSystem::CreateWindow()
 {
-    mWindow = SDL_CreateWindow("Test Window", 100, 100, 1024, 768, SDL_WINDOW_OPENGL);
+    mWindow = SDL_CreateWindow("Test Window", 100, 100,
+            mWindowWidth, mWindowHeight, SDL_WINDOW_OPENGL);
     return mWindow != nullptr;
 }
 
@@ -76,10 +83,15 @@ bool RenderSystem::InitAPI()
 
 void RenderSystem::Draw()
 {
-    for(auto m : mModels)
+    for(auto model : mModels)
     {
-        glBindVertexArray(m.VAO());
-        auto meshes = m.GetMeshes();
+        glBindVertexArray(model.VAO());
+        auto meshes = model.GetMeshes();
+        for(const auto& mesh : meshes)
+        {
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
+            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponenType(), 0);
+        }
     }
 }
 
@@ -93,45 +105,24 @@ void RenderSystem::KillAPI()
     SDL_Quit();
 }
 
+void RenderSystem::AddModel(const std::string &modelName)
+{
+    mModels.push_back(Model{modelName});
+}
+
 int main(int argc, char* argv[])
 {
     bool running = true;
     RenderSystem rs;
     if(rs.Initialize())
     {
-        std::vector<Vertex3> vertices;
-        vertices.push_back(Vertex3{glm::vec3{-0.5f, 0.0f, 0.0f}, glm::vec3{1.0f, 0.0f, 0.0f}});
-        vertices.push_back(Vertex3{glm::vec3{0.0f, 0.5f, 0.0f}, glm::vec3{0.0f, 1.0f, 0.0f}});
-        vertices.push_back(Vertex3{glm::vec3{0.5f, 0.0f, 0.0f}, glm::vec3{0.0f, 0.0f, 1.0f}});
-
-        std::string mod = "Box.gltf";
-
-        Model test {mod};
-        Mesh triangle {vertices};
-
-        GLuint VAO;
-        GLuint VBO;
-
-        glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
-
-        glGenBuffers(1, &VBO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, triangle.Vertices().size() * sizeof(Vertex3), triangle.Vertices().data(), GL_STATIC_DRAW);
-
-        // position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        // color
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)offsetof(Vertex3, color));
-        glEnableVertexAttribArray(1);
-
         const char* vertexShaderSource = "#version 330 core\n"
                                    "layout (location = 0) in vec3 aPos;\n"
+                                   "layout (location = 1) in vec3 aNormal;\n"
+                                   "uniform mat4 mvp;\n"
                                    "void main()\n"
                                    "{\n"
-                                   "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                   "   gl_Position = mvp * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
                                    "}\0";
 
         const char* fragmentShaderSource = "#version 330 core\n"
@@ -139,7 +130,7 @@ int main(int argc, char* argv[])
                                            "\n"
                                            "void main()\n"
                                            "{\n"
-                                           "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                           "    FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);\n"
                                            "}\0";
 
         unsigned int vertexShader;
@@ -164,6 +155,19 @@ int main(int argc, char* argv[])
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 proj = glm::mat4(1.0f);
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
+
+        glm::mat4 mvp = proj * view * model;
+        int mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
+        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+
+        rs.AddModel("Box.gltf");
 
         while(running)
         {
@@ -191,8 +195,7 @@ int main(int argc, char* argv[])
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 glUseProgram(shaderProgram);
-                glBindVertexArray(VAO);
-                glDrawArrays(GL_TRIANGLES, 0, 3);
+                rs.Draw();
                 SDL_GL_SwapWindow(rs.Window());
             }
         }

@@ -36,12 +36,16 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
         }
     }
 
+    // TODO : how many sets of primitives per mesh are there?
     for(size_t i = 0; i < mesh.primitives.size(); ++i)
     {
         tinygltf::Primitive primitive = mesh.primitives[i];
         for(auto& attrib : primitive.attributes)
         {
             tinygltf::Accessor accessor = model.accessors[attrib.second];
+            tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
+            mIndexComponentType = indexAccessor.componentType;
+            mIndexCount = indexAccessor.count;
             int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
             glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
@@ -61,6 +65,8 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
                         accessor.normalized ? GL_TRUE : GL_FALSE,
                         stride, BUFFER_OFFSET(accessor.byteOffset));
             }
+
+            mPrimitiveMode = primitive.mode;
         }
     }
 }
@@ -76,9 +82,7 @@ Mesh::Mesh(std::vector<Vertex3> v)
 }
 
 Mesh::~Mesh()
-{
-
-}
+= default;
 
 static tinygltf::TinyGLTF gLoader;
 
