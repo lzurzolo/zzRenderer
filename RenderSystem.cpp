@@ -3,6 +3,7 @@
 //
 
 #include "RenderSystem.hpp"
+#include "ShaderProgram.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -168,6 +169,8 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
         rs.AddModel("Box.gltf");
+
+        ShaderProgram testShader {"basic"};
 
         while(running)
         {
