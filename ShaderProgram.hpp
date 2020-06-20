@@ -24,6 +24,7 @@ class ShaderProgram
 public:
     ShaderProgram(const std::string& shaderName);
     ~ShaderProgram();
+    void Use() { glUseProgram(mID); }
 
 private:
     GLuint mID;
