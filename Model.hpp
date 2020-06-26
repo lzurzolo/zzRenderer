@@ -24,7 +24,7 @@ public:
     std::vector<Vertex3>&   Vertices() { return mVertices; }
     [[nodiscard]] GLuint    EBO() const { return mEBO; };
     [[nodiscard]] GLint     PrimitiveMode() const { return mPrimitiveMode; }
-    [[nodiscard]] GLint     IndexComponenType() const { return mIndexComponentType; }
+    [[nodiscard]] GLint     IndexComponentType() const { return mIndexComponentType; }
     [[nodiscard]] GLint     IndexCount() const { return mIndexCount; }
 
 private:

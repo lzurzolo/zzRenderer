@@ -91,7 +91,7 @@ void RenderSystem::Draw()
         for(const auto& mesh : meshes)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
-            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponenType(), 0);
+            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), 0);
         }
     }
 }
