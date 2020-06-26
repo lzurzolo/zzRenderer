@@ -11,6 +11,7 @@
 #include <SDL2/SDL_opengl.h>
 #include "tiny_gltf.h"
 #include "Vertex3.hpp"
+#include "ShaderUniform.hpp"
 
 class Mesh
 {
@@ -38,11 +39,11 @@ private:
 class Model
 {
 public:
-    Model();
     explicit Model(const std::string& modelName);
     ~Model();
     [[nodiscard]] GLuint VAO() const { return mVAO; }
     std::vector<Mesh>& GetMeshes() { return mMeshes; }
+    Uniform<glm::mat4> mModelMatrix;
 private:
     std::vector<Mesh> mMeshes;
     GLuint mVAO;

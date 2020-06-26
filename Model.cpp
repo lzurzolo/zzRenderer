@@ -86,10 +86,8 @@ Mesh::~Mesh()
 
 static tinygltf::TinyGLTF gLoader;
 
-Model::Model()
-= default;
-
 Model::Model(const std::string& modelName)
+:mModelMatrix(glm::mat4(1.0f))
 {
     tinygltf::Model model;
     std::string err;

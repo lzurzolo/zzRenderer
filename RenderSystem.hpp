@@ -22,7 +22,7 @@ public:
     SDL_Window* Window() { return mWindow; }
     [[nodiscard]] int WindowHeight() const { return mWindowHeight; }
     [[nodiscard]] int WindowWidth() const { return mWindowWidth; }
-    void AddModel(const std::string& modelName);
+    Model* AddModel(const std::string& modelName);
 private:
     bool CreateWindow();
     bool CreateContext();
