@@ -30,27 +30,27 @@ struct UniformInfo
     , type(t)
     , location(loc)
     {}
-    UniformName name;
-    GLenum type;
-    GLint location;
+    UniformName                         name;
+    GLenum                              type;
+    GLint                               location;
 };
 
 class ShaderProgram
 {
 public:
-    explicit ShaderProgram(const std::string& shaderName);
-    ~ShaderProgram();
-    void Use() const { glUseProgram(mID); }
-    [[nodiscard]] GLuint ID() const { return mID; }
-    GLint GetUniformLocation(UniformName name);
-    void PrintActiveUniforms();
-    void PrintActiveAttributes();
+    explicit                            ShaderProgram(const std::string& shaderName);
+                                        ~ShaderProgram();
+    void                                Use() const { glUseProgram(mID); }
+    [[nodiscard]] GLuint                ID() const { return mID; }
+    GLint                               GetUniformLocation(UniformName name);
+    void                                PrintActiveUniforms();
+    void                                PrintActiveAttributes();
 
 
 private:
-    GLuint mID;
-    GLuint CreateAndCompileShader(std::filesystem::path path, ShaderType st);
-    void InitializeActiveUniformTable(GLuint shaderProgram);
-    std::map<UniformName, UniformInfo> mUniforms;
+    GLuint                              mID;
+    GLuint                              CreateAndCompileShader(std::filesystem::path path, ShaderType st);
+    void                                InitializeActiveUniformTable(GLuint shaderProgram);
+    std::map<UniformName, UniformInfo>  mUniforms;
 };
 #endif //ZZRENDERER_SHADERPROGRAM_HPP

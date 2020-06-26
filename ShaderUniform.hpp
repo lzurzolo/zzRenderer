@@ -15,14 +15,14 @@ template <class T>
 class Uniform
 {
 public:
-    explicit Uniform(T d);
-    void Update(T d);
-    void Bind();
-    void SetLocation(GLint loc) { mLocation = loc; }
+    explicit    Uniform(T d);
+    void        Update(T d);
+    void        Bind();
+    void        SetLocation(GLint loc) { mLocation = loc; }
 
 private:
-    T mData;
-    GLint mLocation;
+    T           mData;
+    GLint       mLocation;
 };
 
 #endif //ZZRENDERER_SHADERUNIFORM_HPP
