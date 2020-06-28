@@ -24,6 +24,7 @@ public:
     [[nodiscard]] int                       WindowHeight() const { return mWindowHeight; }
     [[nodiscard]] int                       WindowWidth() const { return mWindowWidth; }
     Model*                                  AddModel(const std::string& modelName);
+
 private:
     bool                                    CreateWindow();
     bool                                    CreateContext();
