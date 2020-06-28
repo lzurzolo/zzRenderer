@@ -91,7 +91,7 @@ void RenderSystem::Draw()
         for(const auto& mesh : meshes)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
-            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponenType(), 0);
+            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), 0);
         }
     }
 }
@@ -106,9 +106,10 @@ void RenderSystem::KillAPI()
     SDL_Quit();
 }
 
-void RenderSystem::AddModel(const std::string &modelName)
+Model* RenderSystem::AddModel(const std::string &modelName)
 {
     mModels.push_back(Model{modelName});
+    return &(mModels[mModels.size() - 1]);
 }
 
 int main(int argc, char* argv[])
@@ -117,60 +118,29 @@ int main(int argc, char* argv[])
     RenderSystem rs;
     if(rs.Initialize())
     {
-        const char* vertexShaderSource = "#version 330 core\n"
-                                   "layout (location = 0) in vec3 aPos;\n"
-                                   "layout (location = 1) in vec3 aNormal;\n"
-                                   "uniform mat4 mvp;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "   gl_Position = mvp * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                   "}\0";
-
-        const char* fragmentShaderSource = "#version 330 core\n"
-                                           "out vec4 FragColor;\n"
-                                           "\n"
-                                           "void main()\n"
-                                           "{\n"
-                                           "    FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);\n"
-                                           "}\0";
-
-        unsigned int vertexShader;
-        unsigned int fragmentShader;
-
-        vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-
-        glCompileShader(vertexShader);
-        glCompileShader(fragmentShader);
-
-        GLuint shaderProgram;
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-
-        glUseProgram(shaderProgram);
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 proj = glm::mat4(1.0f);
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
 
-        glm::mat4 mvp = proj * view * model;
-        int mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
-        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-
-        rs.AddModel("Box.gltf");
-
         ShaderProgram testShader {"basic"};
+        testShader.Use();
+
+        Model* m = rs.AddModel("Box.gltf");
+        m->mModelMatrix.Update(model);
+        m->mModelMatrix.SetLocation(testShader.GetUniformLocation("model"));
+        m->mModelMatrix.Bind();
+
+        Uniform<glm::mat4> viewMatrix{view};
+        viewMatrix.SetLocation(testShader.GetUniformLocation("view"));
+        viewMatrix.Bind();
+
+        Uniform<glm::mat4> projectionMatrix{proj};
+        projectionMatrix.SetLocation(testShader.GetUniformLocation("projection"));
+        projectionMatrix.Bind();
 
         while(running)
         {
@@ -197,7 +167,10 @@ int main(int argc, char* argv[])
                 glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-                glUseProgram(shaderProgram);
+                testShader.Use();
+                m->mModelMatrix.Bind();
+                viewMatrix.Bind();
+                projectionMatrix.Bind();
                 rs.Draw();
                 SDL_GL_SwapWindow(rs.Window());
             }

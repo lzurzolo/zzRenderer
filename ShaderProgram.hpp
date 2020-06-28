@@ -8,7 +8,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 #include <vector>
+#include <map>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 
@@ -19,15 +21,36 @@ enum class ShaderType
     GEOMETRY
 };
 
+typedef std::string UniformName;
+
+struct UniformInfo
+{
+    UniformInfo(UniformName n, GLenum t, GLint loc)
+    : name(n)
+    , type(t)
+    , location(loc)
+    {}
+    UniformName                         name;
+    GLenum                              type;
+    GLint                               location;
+};
+
 class ShaderProgram
 {
 public:
-    ShaderProgram(const std::string& shaderName);
-    ~ShaderProgram();
-    void Use() { glUseProgram(mID); }
+    explicit                            ShaderProgram(const std::string& shaderName);
+                                        ~ShaderProgram();
+    void                                Use() const { glUseProgram(mID); }
+    [[nodiscard]] GLuint                ID() const { return mID; }
+    GLint                               GetUniformLocation(UniformName name);
+    void                                PrintActiveUniforms();
+    void                                PrintActiveAttributes();
+
 
 private:
-    GLuint mID;
-    GLuint CreateAndCompileShader(std::filesystem::path path, ShaderType st);
+    GLuint                              mID;
+    GLuint                              CreateAndCompileShader(std::filesystem::path path, ShaderType st);
+    void                                InitializeActiveUniformTable(GLuint shaderProgram);
+    std::map<UniformName, UniformInfo>  mUniforms;
 };
 #endif //ZZRENDERER_SHADERPROGRAM_HPP
