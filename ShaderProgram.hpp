@@ -43,7 +43,7 @@ public:
     void                                Use() const { glUseProgram(mID); }
     [[nodiscard]] GLuint                ID() const { return mID; }
     std::string                         Name() const { return mName; }
-    GLint                               GetUniformLocation(UniformName name);
+    GLint                               GetUniformLocation(UniformName name) const;
     void                                PrintActiveUniforms();
     void                                PrintActiveAttributes();
 

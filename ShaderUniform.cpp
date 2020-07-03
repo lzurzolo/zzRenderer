@@ -4,10 +4,13 @@
 
 #include "ShaderUniform.hpp"
 
+#include <utility>
+
 template<class T>
-Uniform<T>::Uniform(T d)
+Uniform<T>::Uniform(T d, const std::string& name)
 : mData(d)
 , mLocation(0)
+, mName(name)
 {
 
 }

@@ -12,7 +12,6 @@ ShaderProgram::ShaderProgram(const std::string &shaderName)
      * .fs fragment shader
      * .gs geometry shader
      */
-
     std::vector<GLuint> shaders;
 
     std::filesystem::path p = std::filesystem::current_path();
@@ -132,7 +131,7 @@ void ShaderProgram::InitializeActiveUniformTable(GLuint shaderProgram)
     }
 }
 
-GLint ShaderProgram::GetUniformLocation(UniformName name)
+GLint ShaderProgram::GetUniformLocation(UniformName name) const
 {
     auto it = mUniforms.find(name);
     if(it == mUniforms.end())

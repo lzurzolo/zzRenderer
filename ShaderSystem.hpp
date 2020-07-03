@@ -16,6 +16,7 @@ public:
     ~ShaderSystem();
     ShaderProgram& GetShader(ShaderName name);
     void AddShader(ShaderProgram program);
+    int GetShaderCount() { return mShaders.size(); }
 
 private:
     std::map<ShaderName, ShaderProgram> mShaders;

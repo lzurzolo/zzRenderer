@@ -136,10 +136,10 @@ int main(int argc, char* argv[])
 {
     bool running = true;
     RenderSystem rs;
-    ShaderSystem ss;
 
     if(rs.Initialize())
     {
+        ShaderSystem ss;
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -148,21 +148,18 @@ int main(int argc, char* argv[])
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
 
-        ShaderProgram testShader {"basic"};
-        testShader.Use();
+        ShaderProgram sp = ss.GetShader("basic");
 
-        Model m = rs.AddModel("Box.gltf", ss.GetShader("basic"));
-
+        Model m = rs.AddModel("Box.gltf", sp);
         m.mModelMatrix.Update(model);
-        m.mModelMatrix.SetLocation(testShader.GetUniformLocation("model"));
         m.mModelMatrix.Bind();
 
-        Uniform<glm::mat4> viewMatrix{view};
-        viewMatrix.SetLocation(testShader.GetUniformLocation("view"));
+        Uniform<glm::mat4> viewMatrix{view, "view"};
+        viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));
         viewMatrix.Bind();
 
-        Uniform<glm::mat4> projectionMatrix{proj};
-        projectionMatrix.SetLocation(testShader.GetUniformLocation("projection"));
+        Uniform<glm::mat4> projectionMatrix{proj, "projection"};
+        projectionMatrix.SetLocation(sp.GetUniformLocation(projectionMatrix.Name()));
         projectionMatrix.Bind();
 
         while(running)
@@ -190,7 +187,7 @@ int main(int argc, char* argv[])
                 glClearColor(0.5f, 0.5f, 0.5f, 0.0f);
                 glClear(GL_COLOR_BUFFER_BIT);
 
-                testShader.Use();
+                sp.Use();
                 m.mModelMatrix.Bind();
                 viewMatrix.Bind();
                 projectionMatrix.Bind();
