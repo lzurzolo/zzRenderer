@@ -84,10 +84,10 @@ bool RenderSystem::InitAPI()
 
 void RenderSystem::Draw()
 {
-    for(auto model : mModels)
+    for(auto& model : mModels)
     {
-        glBindVertexArray(model.VAO());
-        auto meshes = model.GetMeshes();
+        glBindVertexArray(model.second.VAO());
+        auto meshes = model.second.GetMeshes();
         for(const auto& mesh : meshes)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
@@ -106,16 +106,38 @@ void RenderSystem::KillAPI()
     SDL_Quit();
 }
 
-Model* RenderSystem::AddModel(const std::string &modelName)
+Model& RenderSystem::AddModel(const std::string &modelName, const ShaderProgram& sp)
 {
-    mModels.push_back(Model{modelName});
-    return &(mModels[mModels.size() - 1]);
+    Model m{modelName, sp};
+    mModels.insert(std::pair(modelName, m));
+    return mModels.find(modelName)->second;
+}
+
+Model& RenderSystem::GetModel(const std::string& name)
+{
+    auto it = mModels.find(name);
+    if(it == mModels.end())
+    {
+        std::cout << "Model not found" << std::endl;
+        EXIT_FAILURE;
+    }
+    else
+    {
+        return it->second;
+    }
+}
+
+void RenderSystem::RemoveModel(const std::string &modelName)
+{
+    mModels.erase(modelName);
 }
 
 int main(int argc, char* argv[])
 {
     bool running = true;
     RenderSystem rs;
+    ShaderSystem ss;
+
     if(rs.Initialize())
     {
         glm::mat4 model = glm::mat4(1.0f);
@@ -129,10 +151,11 @@ int main(int argc, char* argv[])
         ShaderProgram testShader {"basic"};
         testShader.Use();
 
-        Model* m = rs.AddModel("Box.gltf");
-        m->mModelMatrix.Update(model);
-        m->mModelMatrix.SetLocation(testShader.GetUniformLocation("model"));
-        m->mModelMatrix.Bind();
+        Model m = rs.AddModel("Box.gltf", ss.GetShader("basic"));
+
+        m.mModelMatrix.Update(model);
+        m.mModelMatrix.SetLocation(testShader.GetUniformLocation("model"));
+        m.mModelMatrix.Bind();
 
         Uniform<glm::mat4> viewMatrix{view};
         viewMatrix.SetLocation(testShader.GetUniformLocation("view"));
@@ -168,7 +191,7 @@ int main(int argc, char* argv[])
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 testShader.Use();
-                m->mModelMatrix.Bind();
+                m.mModelMatrix.Bind();
                 viewMatrix.Bind();
                 projectionMatrix.Bind();
                 rs.Draw();

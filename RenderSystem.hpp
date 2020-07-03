@@ -6,11 +6,15 @@
 #define ZZRENDERER_RENDERSYSTEM_HPP
 
 #include <iostream>
+#include <filesystem>
+#include <map>
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include "Model.hpp"
-#include "ShaderProgram.hpp"
+#include "ShaderSystem.hpp"
+
+typedef std::string ShaderName;
 
 class RenderSystem
 {
@@ -23,7 +27,9 @@ public:
     SDL_Window*                             Window() { return mWindow; }
     [[nodiscard]] int                       WindowHeight() const { return mWindowHeight; }
     [[nodiscard]] int                       WindowWidth() const { return mWindowWidth; }
-    Model*                                  AddModel(const std::string& modelName);
+    Model&                                  AddModel(const std::string& modelName, const ShaderProgram& sp);
+    void                                    RemoveModel(const std::string& modelName);
+    Model&                                  GetModel(const std::string& name);
 
 private:
     bool                                    CreateWindow();
@@ -36,8 +42,9 @@ private:
     int                                     mWindowWidth;
     SDL_Window*                             mWindow;
     SDL_GLContext                           mContext;
-    std::vector<Model>                      mModels;
-    std::map<std::string, ShaderProgram>    mShaders;
+
+    // TODO : need a "model instance" map as there can be multiple instances of the same model obviously
+    std::map<std::string, Model>            mModels;
 };
 
 

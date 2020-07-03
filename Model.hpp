@@ -11,6 +11,7 @@
 #include <SDL2/SDL_opengl.h>
 #include "tiny_gltf.h"
 #include "Vertex3.hpp"
+#include "ShaderProgram.hpp"
 #include "ShaderUniform.hpp"
 
 class Mesh
@@ -29,22 +30,27 @@ public:
 
 private:
     std::vector<Vertex3>    mVertices;
-    GLuint                  mVBO;
-    GLuint                  mEBO;
-    GLint                   mPrimitiveMode;
-    GLint                   mIndexComponentType;
-    GLint                   mIndexCount;
+    GLuint                  mVBO{};
+    GLuint                  mEBO{};
+    GLint                   mPrimitiveMode{};
+    GLint                   mIndexComponentType{};
+    GLint                   mIndexCount{};
 };
 
 class Model
 {
 public:
-    explicit                Model(const std::string& modelName);
-    ~Model();
+                            Model(const std::string& modelName, const ShaderProgram& sp);
+                            ~Model();
     [[nodiscard]] GLuint    VAO() const { return mVAO; }
     std::vector<Mesh>&      GetMeshes() { return mMeshes; }
     Uniform<glm::mat4>      mModelMatrix;
+    void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
+    std::string             Name() { return mName; }
+
 private:
+    std::string             mName;
+    ShaderProgram           mCurrentShader;
     std::vector<Mesh>       mMeshes;
     GLuint                  mVAO;
     // materials

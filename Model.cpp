@@ -9,6 +9,8 @@
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
+: mVBO(-1)
+, mEBO(-1)
 {
     for(size_t i = 0; i < model.bufferViews.size(); ++i)
     {
@@ -86,8 +88,11 @@ Mesh::~Mesh()
 
 static tinygltf::TinyGLTF gLoader;
 
-Model::Model(const std::string& modelName)
-:mModelMatrix(glm::mat4(1.0f))
+Model::Model(const std::string& modelName, const ShaderProgram& sp)
+: mModelMatrix(glm::mat4(1.0f))
+, mName(modelName)
+, mVAO(-1)
+, mCurrentShader(sp)
 {
     tinygltf::Model model;
     std::string err;
@@ -129,9 +134,7 @@ Model::Model(const std::string& modelName)
 }
 
 Model::~Model()
-{
-
-}
+= default;
 
 void Model::BindModelNodes(tinygltf::Model &model, tinygltf::Node &node)
 {

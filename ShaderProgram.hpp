@@ -42,15 +42,16 @@ public:
                                         ~ShaderProgram();
     void                                Use() const { glUseProgram(mID); }
     [[nodiscard]] GLuint                ID() const { return mID; }
+    std::string                         Name() const { return mName; }
     GLint                               GetUniformLocation(UniformName name);
     void                                PrintActiveUniforms();
     void                                PrintActiveAttributes();
-
 
 private:
     GLuint                              mID;
     GLuint                              CreateAndCompileShader(std::filesystem::path path, ShaderType st);
     void                                InitializeActiveUniformTable(GLuint shaderProgram);
     std::map<UniformName, UniformInfo>  mUniforms;
+    std::string                         mName;
 };
 #endif //ZZRENDERER_SHADERPROGRAM_HPP

@@ -5,6 +5,7 @@
 #include "ShaderProgram.hpp"
 
 ShaderProgram::ShaderProgram(const std::string &shaderName)
+: mName(shaderName)
 {
     /*
      * .vs vertex shader
