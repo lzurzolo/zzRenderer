@@ -13,6 +13,7 @@
 #include "Vertex3.hpp"
 #include "ShaderProgram.hpp"
 #include "ShaderUniform.hpp"
+#include "Material.hpp"
 
 class Mesh
 {
@@ -53,7 +54,7 @@ private:
     ShaderProgram           mCurrentShader;
     std::vector<Mesh>       mMeshes;
     GLuint                  mVAO;
-    // materials
+    Material                mMaterial;
     void                    BindModelNodes(tinygltf::Model &model, tinygltf::Node &node);
     void                    BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
 };
