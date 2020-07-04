@@ -9,12 +9,19 @@
 #include <glm/gtc/type_ptr.hpp>
 
 RenderSystem::RenderSystem()
-= default;
+: mWindowHeight(0)
+, mWindowWidth(0)
+, mWindow(nullptr)
+, mContext(nullptr)
+{
+
+}
 
 RenderSystem::~RenderSystem()
 {
     DestroyWindow();
     KillAPI();
+    ClearResources();
 }
 
 bool RenderSystem::Initialize()
@@ -130,6 +137,11 @@ Model& RenderSystem::GetModel(const std::string& name)
 void RenderSystem::RemoveModel(const std::string &modelName)
 {
     mModels.erase(modelName);
+}
+
+void RenderSystem::ClearResources()
+{
+    mModels.clear();
 }
 
 int main(int argc, char* argv[])

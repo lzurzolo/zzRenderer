@@ -37,6 +37,7 @@ private:
     bool                                    InitAPI();
     void                                    DestroyWindow();
     void                                    KillAPI();
+    void                                    ClearResources();
 
     int                                     mWindowHeight;
     int                                     mWindowWidth;
