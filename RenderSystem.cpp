@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 
         ShaderProgram sp = ss.GetShader("basic");
 
-        Model m = rs.AddModel("Box.gltf", sp);
+        Model m = rs.AddModel("BoxInterleaved.gltf", sp);
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));

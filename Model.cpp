@@ -83,6 +83,7 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
         bcf.b = b[2];
         bcf.a = b[3];
 
+        // TODO : what happens if material name is empty
         Material m{
             mat.name,
             sp,
