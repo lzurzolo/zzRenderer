@@ -8,9 +8,10 @@
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
+Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp)
 : mVBO(-1)
 , mEBO(-1)
+, mCurrentShader(sp)
 {
     for(size_t i = 0; i < model.bufferViews.size(); ++i)
     {
@@ -70,6 +71,26 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
 
             mPrimitiveMode = primitive.mode;
         }
+
+        tinygltf::Material mat = model.materials[primitive.material];
+
+        glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
+
+        auto b = mat.pbrMetallicRoughness.baseColorFactor;
+
+        bcf.r = b[0];
+        bcf.g = b[1];
+        bcf.b = b[2];
+        bcf.a = b[3];
+
+        Material m{
+            mat.name,
+            sp,
+            PBRMetallicRoughness{
+                Uniform<float>(mat.pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                Uniform<glm::vec4>(glm::vec4{bcf}, "roughness"), sp}};
+
+        mMaterial = m;
     }
 }
 
@@ -81,6 +102,11 @@ Mesh::Mesh(std::string meshName)
 Mesh::Mesh(std::vector<Vertex3> v)
 {
     mVertices = v;
+}
+
+void Mesh::BindUniforms()
+{
+    mMaterial.BindUniforms();
 }
 
 Mesh::~Mesh()
@@ -154,5 +180,14 @@ void Model::BindModelNodes(tinygltf::Model &model, tinygltf::Node &node)
 
 void Model::BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
 {
-    mMeshes.push_back({model, mesh});
+    mMeshes.push_back({model, mesh, mCurrentShader});
+}
+
+void Model::BindUniforms()
+{
+    mModelMatrix.Bind();
+    for(auto& m : mMeshes)
+    {
+        m.BindUniforms();
+    }
 }

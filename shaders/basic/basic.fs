@@ -2,7 +2,17 @@
 
 out vec4 FragColor;
 
+uniform float metallicFactor;
+uniform vec4 roughness;
+
 void main()
 {
-    FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    if(metallicFactor < 0.5)
+    {
+        FragColor = roughness;
+    }
+    else
+    {
+        FragColor = roughness * metallicFactor;
+    }
 }

@@ -18,7 +18,7 @@
 class Mesh
 {
 public:
-                            Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
+                            Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp);
     explicit                Mesh(std::string meshName);
     explicit                Mesh(std::vector<Vertex3> v);
                             ~Mesh();
@@ -28,6 +28,8 @@ public:
     [[nodiscard]] GLint     PrimitiveMode() const { return mPrimitiveMode; }
     [[nodiscard]] GLint     IndexComponentType() const { return mIndexComponentType; }
     [[nodiscard]] GLint     IndexCount() const { return mIndexCount; }
+    void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
+    void                    BindUniforms();
 
 private:
     std::vector<Vertex3>    mVertices;
@@ -36,6 +38,8 @@ private:
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};
     GLint                   mIndexCount{};
+    Material                mMaterial;
+    ShaderProgram           mCurrentShader;
 };
 
 class Model
@@ -48,13 +52,13 @@ public:
     Uniform<glm::mat4>      mModelMatrix;
     void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
     std::string             Name() { return mName; }
+    void                    BindUniforms();
 
 private:
     std::string             mName;
     ShaderProgram           mCurrentShader;
     std::vector<Mesh>       mMeshes;
     GLuint                  mVAO;
-    Material                mMaterial;
     void                    BindModelNodes(tinygltf::Model &model, tinygltf::Node &node);
     void                    BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
 };
