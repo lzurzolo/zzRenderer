@@ -41,7 +41,7 @@ public:
     [[nodiscard]] std::string   Name() const { return mName; }
     void                        SetName(std::string name) { mName = name; }
     void                        SetPBRMetallicRoughness(const PBRMetallicRoughness& pbrmr) { mMetallicRoughness = pbrmr; }
-    void                        BindUniforms();
+    void                        BindUniforms() const;
 
 private:
     std::string                 mName;

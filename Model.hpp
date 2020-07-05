@@ -29,7 +29,7 @@ public:
     [[nodiscard]] GLint     IndexComponentType() const { return mIndexComponentType; }
     [[nodiscard]] GLint     IndexCount() const { return mIndexCount; }
     void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
-    void                    BindUniforms();
+    void                    BindUniforms() const;
 
 private:
     std::vector<Vertex3>    mVertices;
@@ -52,7 +52,7 @@ public:
     Uniform<glm::mat4>      mModelMatrix;
     void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
     std::string             Name() { return mName; }
-    void                    BindUniforms();
+    void                    BindUniforms() const;
 
 private:
     std::string             mName;

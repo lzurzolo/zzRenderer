@@ -104,7 +104,7 @@ Mesh::Mesh(std::vector<Vertex3> v)
     mVertices = v;
 }
 
-void Mesh::BindUniforms()
+void Mesh::BindUniforms() const
 {
     mMaterial.BindUniforms();
 }
@@ -183,11 +183,7 @@ void Model::BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
     mMeshes.push_back({model, mesh, mCurrentShader});
 }
 
-void Model::BindUniforms()
+void Model::BindUniforms() const
 {
     mModelMatrix.Bind();
-    for(auto& m : mMeshes)
-    {
-        m.BindUniforms();
-    }
 }

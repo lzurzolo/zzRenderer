@@ -21,7 +21,7 @@ Material::~Material()
 
 }
 
-void Material::BindUniforms()
+void Material::BindUniforms() const
 {
     mMetallicRoughness.metallicFactor.Bind();
     mMetallicRoughness.baseColorFactor.Bind();

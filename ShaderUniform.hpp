@@ -19,7 +19,7 @@ class Uniform
 public:
     explicit    Uniform(T d, const std::string& name);
     void        Update(T d);
-    void        Bind();
+    void        Bind() const;
     void        SetLocation(GLint loc) { mLocation = loc; }
     void        PrintData();
     std::string Name() { return mName; }

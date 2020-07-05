@@ -93,10 +93,12 @@ void RenderSystem::Draw()
 {
     for(auto& model : mModels)
     {
+        //model.second.BindUniforms();
         glBindVertexArray(model.second.VAO());
         auto meshes = model.second.GetMeshes();
         for(const auto& mesh : meshes)
         {
+            mesh.BindUniforms();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
             glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), 0);
         }
@@ -200,7 +202,7 @@ int main(int argc, char* argv[])
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 sp.Use();
-                m.BindUniforms();
+                m.mModelMatrix.Bind();
                 viewMatrix.Bind();
                 projectionMatrix.Bind();
                 rs.Draw();

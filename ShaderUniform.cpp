@@ -22,7 +22,7 @@ void Uniform<T>::Update(T d)
 }
 
 template<class T>
-void Uniform<T>::Bind()
+void Uniform<T>::Bind() const
 {
 
 }
@@ -34,19 +34,19 @@ void Uniform<T>::PrintData()
 }
 
 template<>
-void Uniform<glm::vec4>::Bind()
+void Uniform<glm::vec4>::Bind() const
 {
     glUniform4fv(mLocation, 1, glm::value_ptr(mData));
 }
 
 template<>
-void Uniform<glm::mat4>::Bind()
+void Uniform<glm::mat4>::Bind() const
 {
     glUniformMatrix4fv(mLocation, 1, GL_FALSE, glm::value_ptr(mData));
 }
 
 template<>
-void Uniform<float>::Bind()
+void Uniform<float>::Bind() const
 {
     glUniform1f(mLocation, mData);
 }
