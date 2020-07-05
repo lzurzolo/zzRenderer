@@ -5,6 +5,7 @@
 #ifndef ZZRENDERER_SHADERUNIFORM_HPP
 #define ZZRENDERER_SHADERUNIFORM_HPP
 
+#include <iostream>
 #include <string>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
@@ -18,8 +19,9 @@ class Uniform
 public:
     explicit    Uniform(T d, const std::string& name);
     void        Update(T d);
-    void        Bind();
+    void        Bind() const;
     void        SetLocation(GLint loc) { mLocation = loc; }
+    void        PrintData();
     std::string Name() { return mName; }
 
 private:

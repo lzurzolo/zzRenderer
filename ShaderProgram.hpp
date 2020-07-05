@@ -38,6 +38,7 @@ struct UniformInfo
 class ShaderProgram
 {
 public:
+                                        ShaderProgram();
     explicit                            ShaderProgram(const std::string& shaderName);
                                         ~ShaderProgram();
     void                                Use() const { glUseProgram(mID); }

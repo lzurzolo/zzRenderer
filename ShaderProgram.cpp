@@ -4,6 +4,11 @@
 
 #include "ShaderProgram.hpp"
 
+ShaderProgram::ShaderProgram()
+{
+
+}
+
 ShaderProgram::ShaderProgram(const std::string &shaderName)
 : mName(shaderName)
 {
@@ -136,7 +141,7 @@ GLint ShaderProgram::GetUniformLocation(UniformName name) const
     auto it = mUniforms.find(name);
     if(it == mUniforms.end())
     {
-        std::cout << "Uniform not present in shader" << std::endl;
+        std::cout << "Uniform " << name << " not present in shader in " << Name() << std::endl;
         return -42;
     }
     else
