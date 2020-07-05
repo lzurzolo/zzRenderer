@@ -47,6 +47,7 @@ class Model
 public:
                             Model(const std::string& modelName, const ShaderProgram& sp);
                             ~Model();
+
     [[nodiscard]] GLuint    VAO() const { return mVAO; }
     std::vector<Mesh>&      GetMeshes() { return mMeshes; }
     Uniform<glm::mat4>      mModelMatrix;

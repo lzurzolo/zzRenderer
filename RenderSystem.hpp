@@ -13,6 +13,7 @@
 #include <SDL2/SDL_opengl.h>
 #include "Model.hpp"
 #include "ShaderSystem.hpp"
+#include "RenderComponent.hpp"
 
 typedef std::string ShaderName;
 
@@ -30,6 +31,8 @@ public:
     Model&                                  AddModel(const std::string& modelName, const ShaderProgram& sp);
     void                                    RemoveModel(const std::string& modelName);
     Model&                                  GetModel(const std::string& name);
+    RenderComponent&                        AddRenderComponent(std::string name, const RenderComponent& rc);
+    RenderComponent&                        GetRenderComponent(std::string name);
 
 private:
     bool                                    CreateWindow();
@@ -43,6 +46,8 @@ private:
     int                                     mWindowWidth;
     SDL_Window*                             mWindow;
     SDL_GLContext                           mContext;
+
+    std::map<std::string, RenderComponent>  mRenderComponents;
 
     // TODO : need a "model instance" map as there can be multiple instances of the same model obviously
     std::map<std::string, Model>            mModels;

@@ -91,11 +91,11 @@ bool RenderSystem::InitAPI()
 
 void RenderSystem::Draw()
 {
-    for(auto& model : mModels)
+    for(auto& rc : mRenderComponents)
     {
-        //model.second.BindUniforms();
-        glBindVertexArray(model.second.VAO());
-        auto meshes = model.second.GetMeshes();
+        rc.second.mModel->mModelMatrix.Bind();
+        glBindVertexArray(rc.second.mModel->VAO());
+        auto meshes = rc.second.mModel->GetMeshes();
         for(const auto& mesh : meshes)
         {
             mesh.BindUniforms();
@@ -146,6 +146,26 @@ void RenderSystem::ClearResources()
     mModels.clear();
 }
 
+RenderComponent& RenderSystem::AddRenderComponent(std::string name, const RenderComponent &rc)
+{
+    mRenderComponents.insert(std::pair(name, rc));
+    return mRenderComponents.find(name)->second;
+}
+
+RenderComponent &RenderSystem::GetRenderComponent(std::string name)
+{
+    auto it = mRenderComponents.find(name);
+    if(it == mRenderComponents.end())
+    {
+        std::cout << "RenderComponent not found" << std::endl;
+        EXIT_FAILURE;
+    }
+    else
+    {
+        return it->second;
+    }
+}
+
 int main(int argc, char* argv[])
 {
     bool running = true;
@@ -155,18 +175,15 @@ int main(int argc, char* argv[])
     {
         ShaderSystem ss;
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 proj = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
         proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
 
         ShaderProgram sp = ss.GetShader("basic");
 
         Model m = rs.AddModel("Box.gltf", sp);
-        m.mModelMatrix.Update(model);
-        m.mModelMatrix.Bind();
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));
@@ -175,6 +192,18 @@ int main(int argc, char* argv[])
         Uniform<glm::mat4> projectionMatrix{proj, "projection"};
         projectionMatrix.SetLocation(sp.GetUniformLocation(projectionMatrix.Name()));
         projectionMatrix.Bind();
+
+        auto rc1 = rs.AddRenderComponent("box1", RenderComponent{"box1", std::make_shared<Model>(m)});
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, glm::vec3(1.0f, 0.0f, 0.0f));
+        rc1.mModel->mModelMatrix.Update(model2);
+        rc1.mModel->mModelMatrix.PrintData();
+
+        auto rc2 = rs.AddRenderComponent("box2", RenderComponent{"box2", std::make_shared<Model>(m)});
+        glm::mat4 model3 = glm::mat4(1.0f);
+        model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, 0.0f));
+        rc2.mModel->mModelMatrix.Update(model3);
+        rc2.mModel->mModelMatrix.PrintData();
 
         while(running)
         {
@@ -202,7 +231,6 @@ int main(int argc, char* argv[])
                 glClear(GL_COLOR_BUFFER_BIT);
 
                 sp.Use();
-                m.mModelMatrix.Bind();
                 viewMatrix.Bind();
                 projectionMatrix.Bind();
                 rs.Draw();
