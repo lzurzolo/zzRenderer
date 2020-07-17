@@ -61,6 +61,7 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             int vaa = -1;
             if (attrib.first == "POSITION") vaa = 0;
             if (attrib.first == "NORMAL") vaa = 1;
+            if (attrib.first == "TEXCOORD_0") vaa = 2;
             if (vaa > -1)
             {
                 glEnableVertexAttribArray(vaa);
