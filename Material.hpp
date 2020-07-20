@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include "ShaderUniform.hpp"
 #include "ShaderProgram.hpp"
+#include "Texture.hpp"
 
 struct PBRMetallicRoughness
 {
@@ -26,9 +27,19 @@ struct PBRMetallicRoughness
         bcf.SetLocation(sp.GetUniformLocation(bcf.Name()));
     }
 
+    PBRMetallicRoughness(Uniform<float> mf, const Texture& tex, const ShaderProgram& sp)
+    : metallicFactor(mf)
+    , texture(tex)
+    , shaderProgram(sp)
+    , baseColorFactor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), "roughness")
+    {
+
+    }
+
     Uniform<float>              metallicFactor;
     Uniform<glm::vec4>          baseColorFactor;
     ShaderProgram               shaderProgram;
+    Texture                     texture;
 };
 
 

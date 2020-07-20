@@ -12,8 +12,8 @@ Material::Material(const std::string& name, const ShaderProgram& sp, const PBRMe
 , mCurrentShader(sp)
 , mMetallicRoughness(pbrmr)
 {
-    mMetallicRoughness.metallicFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.metallicFactor.Name()));
-    mMetallicRoughness.baseColorFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.baseColorFactor.Name()));
+    //mMetallicRoughness.metallicFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.metallicFactor.Name()));
+    //mMetallicRoughness.baseColorFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.baseColorFactor.Name()));
 }
 
 Material::~Material()
@@ -23,6 +23,7 @@ Material::~Material()
 
 void Material::BindUniforms() const
 {
-    mMetallicRoughness.metallicFactor.Bind();
-    mMetallicRoughness.baseColorFactor.Bind();
+    //mMetallicRoughness.metallicFactor.Bind();
+    //mMetallicRoughness.baseColorFactor.Bind();
+    mMetallicRoughness.texture.Bind();
 }

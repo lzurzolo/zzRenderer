@@ -68,16 +68,18 @@ bool RenderSystem::CreateWindow()
 
 bool RenderSystem::CreateContext()
 {
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
     mContext = SDL_GL_CreateContext(mWindow);
     return mContext != NULL;
 }
 
 bool RenderSystem::InitAPI()
 {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
     glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if(glewError != GLEW_OK)
@@ -99,6 +101,7 @@ void RenderSystem::Draw()
         for(const auto& mesh : meshes)
         {
             mesh.BindUniforms();
+
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
             glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), 0);
         }
@@ -181,9 +184,9 @@ int main(int argc, char* argv[])
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
         proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
 
-        ShaderProgram sp = ss.GetShader("basic");
+        ShaderProgram sp = ss.GetShader("basic_textured");
 
-        Model m = rs.AddModel("BoxInterleaved.gltf", sp);
+        Model m = rs.AddModel("BoxTextured.gltf", sp);
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));

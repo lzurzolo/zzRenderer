@@ -32,8 +32,10 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
         // vertices as per gltf spec
         if(bufferView.target == 34962)
         {
-            glGenBuffers(1, &mVBO);
-            glBindBuffer(bufferView.target, mVBO);
+            int vboIndex = mVBOs.size();
+            mVBOs.resize(vboIndex + 1);
+            glGenBuffers(1, &mVBOs[vboIndex]);
+            glBindBuffer(bufferView.target, mVBOs[vboIndex]);
             glBufferData(bufferView.target, bufferView.byteLength,
                     &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
         }
@@ -50,7 +52,9 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             mIndexComponentType = indexAccessor.componentType;
             mIndexCount = indexAccessor.count;
             int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
-            glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+            // TODO : this needs to be adjusted...do I iterate through all VBOs?
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
 
             int size = 1;
             if(accessor.type != TINYGLTF_TYPE_SCALAR)
@@ -75,24 +79,51 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
 
         tinygltf::Material mat = model.materials[primitive.material];
 
-        glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
+        auto pbrMetallicRoughness = mat.pbrMetallicRoughness;
 
-        auto b = mat.pbrMetallicRoughness.baseColorFactor;
+        // there is a texture for this material, load it
+        if(pbrMetallicRoughness.baseColorTexture.index > -1)
+        {
+            int textureIndex = pbrMetallicRoughness.baseColorTexture.index;
+            tinygltf::Texture &tex = model.textures[textureIndex];
 
-        bcf.r = b[0];
-        bcf.g = b[1];
-        bcf.b = b[2];
-        bcf.a = b[3];
+            tinygltf::Image &image = model.images[tex.source];
+            tinygltf::Sampler samp = model.samplers[tex.sampler];
 
-        // TODO : what happens if material name is empty
-        Material m{
-            mat.name,
-            sp,
-            PBRMetallicRoughness{
-                Uniform<float>(mat.pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                Uniform<glm::vec4>(glm::vec4{bcf}, "roughness"), sp}};
+            Texture texture {image, samp };
 
-        mMaterial = m;
+            Material m{
+                mat.name,
+                sp,
+                PBRMetallicRoughness{
+                    Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                    texture,
+                    sp}};
+
+            mMaterial = m;
+        }
+        else
+        {
+            glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
+
+            auto b = pbrMetallicRoughness.baseColorFactor;
+
+            bcf.r = b[0];
+            bcf.g = b[1];
+            bcf.b = b[2];
+            bcf.a = b[3];
+
+            // TODO : what happens if material name is empty
+            Material m{
+                    mat.name,
+                    sp,
+                    PBRMetallicRoughness{
+                            Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                            Uniform<glm::vec4>(glm::vec4{bcf}, "roughness"),
+                            sp}};
+
+            mMaterial = m;
+        }
     }
 }
 

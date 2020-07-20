@@ -34,6 +34,7 @@ public:
 private:
     std::vector<Vertex3>    mVertices;
     GLuint                  mVBO{};
+    std::vector<GLuint>     mVBOs;
     GLuint                  mEBO{};
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};
