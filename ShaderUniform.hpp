@@ -17,6 +17,7 @@ template <class T>
 class Uniform
 {
 public:
+                Uniform() {}
     explicit    Uniform(T d, const std::string& name);
     void        Update(T d);
     void        Bind() const;

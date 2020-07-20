@@ -6,22 +6,24 @@
 #define ZZRENDERER_MATERIAL_HPP
 
 #include <string>
+#include <variant>
 #include <glm/glm.hpp>
 #include "ShaderUniform.hpp"
 #include "ShaderProgram.hpp"
 #include "Texture.hpp"
 
+typedef Uniform<glm::vec4> BaseColorFactor;
+
 struct PBRMetallicRoughness
 {
     PBRMetallicRoughness()
     : metallicFactor(0.0f, "metallicFactor")
-    , baseColorFactor(glm::vec4{0.0f, 0.0f, 0.0f, 0.0f}, "roughness")
     {}
 
     PBRMetallicRoughness(Uniform<float> mf, Uniform<glm::vec4> bcf, const ShaderProgram& sp)
     : metallicFactor(mf)
-    , baseColorFactor(bcf)
     , shaderProgram(sp)
+    , roughness(bcf)
     {
         mf.SetLocation(sp.GetUniformLocation(mf.Name()));
         bcf.SetLocation(sp.GetUniformLocation(bcf.Name()));
@@ -29,17 +31,17 @@ struct PBRMetallicRoughness
 
     PBRMetallicRoughness(Uniform<float> mf, const Texture& tex, const ShaderProgram& sp)
     : metallicFactor(mf)
-    , texture(tex)
     , shaderProgram(sp)
-    , baseColorFactor(glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), "roughness")
+    , roughness(tex)
     {
 
     }
 
+    void Bind() const;
+
     Uniform<float>              metallicFactor;
-    Uniform<glm::vec4>          baseColorFactor;
     ShaderProgram               shaderProgram;
-    Texture                     texture;
+    std::variant<BaseColorFactor, Texture> roughness;
 };
 
 
