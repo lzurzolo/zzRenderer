@@ -9,6 +9,7 @@ Texture::Texture(const tinygltf::Image& im, const tinygltf::Sampler& samp)
 {
     glGenTextures(1, &mID);
     glBindTexture(GL_TEXTURE_2D, mID);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, samp.minFilter);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, samp.magFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, samp.wrapS);

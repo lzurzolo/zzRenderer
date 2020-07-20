@@ -54,7 +54,6 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
 
             // TODO : this needs to be adjusted...do I iterate through all VBOs?
-            glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
 
             int size = 1;
             if(accessor.type != TINYGLTF_TYPE_SCALAR)
@@ -63,9 +62,21 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             }
 
             int vaa = -1;
-            if (attrib.first == "POSITION") vaa = 0;
-            if (attrib.first == "NORMAL") vaa = 1;
-            if (attrib.first == "TEXCOORD_0") vaa = 2;
+            if (attrib.first == "POSITION")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
+                vaa = 0;
+            }
+            if (attrib.first == "NORMAL")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
+                vaa = 1;
+            }
+            if (attrib.first == "TEXCOORD_0")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[1]);
+                vaa = 2;
+            }
             if (vaa > -1)
             {
                 glEnableVertexAttribArray(vaa);
@@ -187,6 +198,9 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
     {
         assert((n >= 0) && (n < model.nodes.size()));
         BindModelNodes(model, model.nodes[scene.nodes[n]]);
+        //auto mat = model.nodes[scene.nodes[n]].matrix;
+        //glm::mat4 matrix = glm::make_mat4(mat.data());
+        //mModelMatrix.Update(matrix);
     }
 
     glBindVertexArray(0);

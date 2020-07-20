@@ -93,6 +93,7 @@ bool RenderSystem::InitAPI()
 
 void RenderSystem::Draw()
 {
+    glEnable(GL_CULL_FACE);
     for(auto& rc : mRenderComponents)
     {
         rc.second.mModel->mModelMatrix.Bind();
@@ -198,16 +199,16 @@ int main(int argc, char* argv[])
 
         auto rc1 = rs.AddRenderComponent("box1", RenderComponent{"box1", std::make_shared<Model>(m)});
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, glm::vec3(1.0f, 0.0f, 0.0f));
-        model2 = glm::rotate(model2, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        model2 = glm::scale(model2, glm::vec3(1.5f, 1.5f, 1.5f));
+        //model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, 0.0f));
+        model2 = glm::rotate(model2, 45.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+        model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
         rc1.mModel->mModelMatrix.Update(model2);
 
-        auto rc2 = rs.AddRenderComponent("box2", RenderComponent{"box2", std::make_shared<Model>(m)});
-        glm::mat4 model3 = glm::mat4(1.0f);
-        model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, 0.0f));
-        model3 = glm::rotate(model3, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        rc2.mModel->mModelMatrix.Update(model3);
+        //auto rc2 = rs.AddRenderComponent("box2", RenderComponent{"box2", std::make_shared<Model>(m)});
+        //glm::mat4 model3 = glm::mat4(1.0f);
+        //model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, 0.0f));
+        //model3 = glm::rotate(model3, 45.0f, glm::vec3(0.0f, 0.5f, 0.0f));
+        //rc2.mModel->mModelMatrix.Update(model3);
 
         while(running)
         {

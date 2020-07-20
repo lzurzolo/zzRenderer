@@ -9,6 +9,7 @@
 #include <string>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "tiny_gltf.h"
 #include "Vertex3.hpp"
 #include "ShaderProgram.hpp"
