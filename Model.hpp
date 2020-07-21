@@ -9,11 +9,13 @@
 #include <string>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "tiny_gltf.h"
 #include "Vertex3.hpp"
 #include "ShaderProgram.hpp"
 #include "ShaderUniform.hpp"
 #include "Material.hpp"
+#include "zzUtil.hpp"
 
 class Mesh
 {
@@ -34,6 +36,7 @@ public:
 private:
     std::vector<Vertex3>    mVertices;
     GLuint                  mVBO{};
+    std::vector<GLuint>     mVBOs;
     GLuint                  mEBO{};
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};

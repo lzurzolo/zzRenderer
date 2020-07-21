@@ -4,6 +4,23 @@
 
 #include "Material.hpp"
 
+void PBRMetallicRoughness::Bind() const
+{
+    auto* bcf = std::get_if<BaseColorFactor>(&roughnessMap);
+    if(bcf)
+    {
+        bcf->Bind();
+    }
+
+    auto* tex = std::get_if<Texture>(&roughnessMap);
+    if(tex)
+    {
+        tex->Bind();
+    }
+
+    metallicFactor.Bind();
+}
+
 Material::Material()
 = default;
 
@@ -12,8 +29,7 @@ Material::Material(const std::string& name, const ShaderProgram& sp, const PBRMe
 , mCurrentShader(sp)
 , mMetallicRoughness(pbrmr)
 {
-    mMetallicRoughness.metallicFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.metallicFactor.Name()));
-    mMetallicRoughness.baseColorFactor.SetLocation(mCurrentShader.GetUniformLocation(mMetallicRoughness.baseColorFactor.Name()));
+
 }
 
 Material::~Material()
@@ -23,6 +39,7 @@ Material::~Material()
 
 void Material::BindUniforms() const
 {
-    mMetallicRoughness.metallicFactor.Bind();
-    mMetallicRoughness.baseColorFactor.Bind();
+    mMetallicRoughness.Bind();
 }
+
+

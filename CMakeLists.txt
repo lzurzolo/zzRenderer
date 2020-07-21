@@ -9,6 +9,6 @@ find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
-add_executable(zzRenderer GLTFLoader.cpp RenderSystem.cpp RenderSystem.hpp Vertex3.hpp Model.cpp Model.hpp ShaderProgram.hpp ShaderProgram.cpp ShaderUniform.hpp ShaderUniform.cpp ShaderSystem.hpp ShaderSystem.cpp Material.hpp Material.cpp RenderComponent.hpp RenderComponent.cpp)
+add_executable(zzRenderer GLTFLoader.cpp RenderSystem.cpp RenderSystem.hpp Vertex3.hpp Model.cpp Model.hpp ShaderProgram.hpp ShaderProgram.cpp ShaderUniform.hpp ShaderUniform.cpp ShaderSystem.hpp ShaderSystem.cpp Material.hpp Material.cpp RenderComponent.hpp RenderComponent.cpp Texture.hpp Texture.cpp zzUtil.hpp zzUtil.cpp)
 
 target_link_libraries(zzRenderer SDL2::Main ${OPENGL_LIBRARIES} GLEW::GLEW)

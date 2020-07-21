@@ -32,8 +32,10 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
         // vertices as per gltf spec
         if(bufferView.target == 34962)
         {
-            glGenBuffers(1, &mVBO);
-            glBindBuffer(bufferView.target, mVBO);
+            int vboIndex = mVBOs.size();
+            mVBOs.resize(vboIndex + 1);
+            glGenBuffers(1, &mVBOs[vboIndex]);
+            glBindBuffer(bufferView.target, mVBOs[vboIndex]);
             glBufferData(bufferView.target, bufferView.byteLength,
                     &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
         }
@@ -50,7 +52,8 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             mIndexComponentType = indexAccessor.componentType;
             mIndexCount = indexAccessor.count;
             int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
-            glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+            // TODO : this needs to be adjusted...do I iterate through all VBOs?
 
             int size = 1;
             if(accessor.type != TINYGLTF_TYPE_SCALAR)
@@ -59,8 +62,21 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
             }
 
             int vaa = -1;
-            if (attrib.first == "POSITION") vaa = 0;
-            if (attrib.first == "NORMAL") vaa = 1;
+            if (attrib.first == "POSITION")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
+                vaa = 0;
+            }
+            if (attrib.first == "NORMAL")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
+                vaa = 1;
+            }
+            if (attrib.first == "TEXCOORD_0")
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[1]);
+                vaa = 2;
+            }
             if (vaa > -1)
             {
                 glEnableVertexAttribArray(vaa);
@@ -74,24 +90,51 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
 
         tinygltf::Material mat = model.materials[primitive.material];
 
-        glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
+        auto pbrMetallicRoughness = mat.pbrMetallicRoughness;
 
-        auto b = mat.pbrMetallicRoughness.baseColorFactor;
+        // there is a texture for this material, load it
+        if(pbrMetallicRoughness.baseColorTexture.index > -1)
+        {
+            int textureIndex = pbrMetallicRoughness.baseColorTexture.index;
+            tinygltf::Texture &tex = model.textures[textureIndex];
 
-        bcf.r = b[0];
-        bcf.g = b[1];
-        bcf.b = b[2];
-        bcf.a = b[3];
+            tinygltf::Image &image = model.images[tex.source];
+            tinygltf::Sampler samp = model.samplers[tex.sampler];
 
-        // TODO : what happens if material name is empty
-        Material m{
-            mat.name,
-            sp,
-            PBRMetallicRoughness{
-                Uniform<float>(mat.pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                Uniform<glm::vec4>(glm::vec4{bcf}, "roughness"), sp}};
+            Texture texture {image, samp };
 
-        mMaterial = m;
+            Material m{
+                mat.name,
+                sp,
+                PBRMetallicRoughness{
+                    Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                    texture,
+                    sp}};
+
+            mMaterial = m;
+        }
+        else
+        {
+            glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
+
+            auto b = pbrMetallicRoughness.baseColorFactor;
+
+            bcf.r = b[0];
+            bcf.g = b[1];
+            bcf.b = b[2];
+            bcf.a = b[3];
+
+            // TODO : what happens if material name is empty
+            Material m{
+                    mat.name,
+                    sp,
+                    PBRMetallicRoughness{
+                            Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                            Uniform<glm::vec4>(glm::vec4{bcf}, "roughnessMap"),
+                            sp}};
+
+            mMaterial = m;
+        }
     }
 }
 
@@ -121,12 +164,16 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
 , mVAO(-1)
 , mCurrentShader(sp)
 {
+    auto modelNameTokenized = zzUtil::SplitString(modelName, '.');
+    std::string subDir = modelNameTokenized[0];
+
     tinygltf::Model model;
     std::string err;
     std::string warn;
 
     std::filesystem::path p = std::filesystem::current_path();
     p /= "../meshes/";
+    p /= subDir;
     p /= modelName;
 
     bool ret = gLoader.LoadASCIIFromFile(&model, &err, &warn, p);
@@ -155,6 +202,9 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
     {
         assert((n >= 0) && (n < model.nodes.size()));
         BindModelNodes(model, model.nodes[scene.nodes[n]]);
+        //auto mat = model.nodes[scene.nodes[n]].matrix;
+        //glm::mat4 matrix = glm::make_mat4(mat.data());
+        //mModelMatrix.Update(matrix);
     }
 
     glBindVertexArray(0);
