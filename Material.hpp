@@ -23,7 +23,7 @@ struct PBRMetallicRoughness
     PBRMetallicRoughness(Uniform<float> mf, Uniform<glm::vec4> bcf, const ShaderProgram& sp)
     : metallicFactor(mf)
     , shaderProgram(sp)
-    , roughness(bcf)
+    , roughnessMap(bcf)
     {
         mf.SetLocation(sp.GetUniformLocation(mf.Name()));
         bcf.SetLocation(sp.GetUniformLocation(bcf.Name()));
@@ -32,7 +32,7 @@ struct PBRMetallicRoughness
     PBRMetallicRoughness(Uniform<float> mf, const Texture& tex, const ShaderProgram& sp)
     : metallicFactor(mf)
     , shaderProgram(sp)
-    , roughness(tex)
+    , roughnessMap(tex)
     {
 
     }
@@ -41,7 +41,7 @@ struct PBRMetallicRoughness
 
     Uniform<float>              metallicFactor;
     ShaderProgram               shaderProgram;
-    std::variant<BaseColorFactor, Texture> roughness;
+    std::variant<BaseColorFactor, Texture> roughnessMap;
 };
 
 

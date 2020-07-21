@@ -130,7 +130,7 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
                     sp,
                     PBRMetallicRoughness{
                             Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                            Uniform<glm::vec4>(glm::vec4{bcf}, "roughness"),
+                            Uniform<glm::vec4>(glm::vec4{bcf}, "roughnessMap"),
                             sp}};
 
             mMaterial = m;
@@ -164,12 +164,16 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
 , mVAO(-1)
 , mCurrentShader(sp)
 {
+    auto modelNameTokenized = zzUtil::SplitString(modelName, '.');
+    std::string subDir = modelNameTokenized[0];
+
     tinygltf::Model model;
     std::string err;
     std::string warn;
 
     std::filesystem::path p = std::filesystem::current_path();
     p /= "../meshes/";
+    p /= subDir;
     p /= modelName;
 
     bool ret = gLoader.LoadASCIIFromFile(&model, &err, &warn, p);

@@ -6,13 +6,13 @@
 
 void PBRMetallicRoughness::Bind() const
 {
-    auto* bcf = std::get_if<BaseColorFactor>(&roughness);
+    auto* bcf = std::get_if<BaseColorFactor>(&roughnessMap);
     if(bcf)
     {
         bcf->Bind();
     }
 
-    auto* tex = std::get_if<Texture>(&roughness);
+    auto* tex = std::get_if<Texture>(&roughnessMap);
     if(tex)
     {
         tex->Bind();

@@ -15,6 +15,7 @@
 #include "ShaderProgram.hpp"
 #include "ShaderUniform.hpp"
 #include "Material.hpp"
+#include "zzUtil.hpp"
 
 class Mesh
 {
