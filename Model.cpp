@@ -13,21 +13,25 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
 , mEBO(-1)
 , mCurrentShader(sp)
 {
+    const tinygltf::Primitive& primitives = mesh.primitives[0];
+    const tinygltf::Accessor& indicesAccessor = model.accessors[primitives.indices];
+    const tinygltf::BufferView& indicesAccessorBufferView = model.bufferViews[indicesAccessor.bufferView];
+    const tinygltf::Buffer& indicesBuffer = model.buffers[indicesAccessorBufferView.buffer];
+
+    glGenBuffers(1, &mEBO);
+    glBindBuffer(indicesAccessorBufferView.target, mEBO);
+    glBufferData(indicesAccessorBufferView.target, indicesAccessorBufferView.byteLength,
+                 &indicesBuffer.data.at(0) + indicesAccessorBufferView.byteOffset, GL_STATIC_DRAW);
+
+    mIndexComponentType = indicesAccessor.componentType;
+    mIndexCount = indicesAccessor.count;
+
     for(size_t i = 0; i < model.bufferViews.size(); ++i)
     {
         const tinygltf::BufferView &bufferView = model.bufferViews[i];
         if(bufferView.target == 0) continue;
 
         const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
-
-        // indices as per gltf spec
-        if(bufferView.target == 34963)
-        {
-            glGenBuffers(1, &mEBO);
-            glBindBuffer(bufferView.target, mEBO);
-            glBufferData(bufferView.target, bufferView.byteLength,
-                    &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
-        }
 
         // vertices as per gltf spec
         if(bufferView.target == 34962)
@@ -49,8 +53,6 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
         {
             tinygltf::Accessor accessor = model.accessors[attrib.second];
             tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
-            mIndexComponentType = indexAccessor.componentType;
-            mIndexCount = indexAccessor.count;
             int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
 
             // TODO : this needs to be adjusted...do I iterate through all VBOs?
