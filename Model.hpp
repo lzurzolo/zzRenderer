@@ -6,6 +6,7 @@
 #define ZZRENDERER_MODEL_HPP
 
 #include <vector>
+#include <array>
 #include <string>
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
@@ -36,13 +37,15 @@ public:
 private:
     std::vector<Vertex3>    mVertices;
     GLuint                  mVBO{};
-    std::vector<GLuint>     mVBOs;
+    std::array<GLuint, 3>   mVBOs;
     GLuint                  mEBO{};
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};
     GLint                   mIndexCount{};
     Material                mMaterial;
     ShaderProgram           mCurrentShader;
+    void                    LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+    void                    LoadVertexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
 };
 
 class Model

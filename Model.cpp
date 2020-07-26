@@ -7,6 +7,10 @@
 #include "Model.hpp"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define POSITION 0
+#define NORMAL 1
+#define TEXEL 2
+
 
 Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp)
 : mVBO(-1)
@@ -14,129 +18,101 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
 , mCurrentShader(sp)
 {
     const tinygltf::Primitive& primitives = mesh.primitives[0];
-    const tinygltf::Accessor& indicesAccessor = model.accessors[primitives.indices];
-    const tinygltf::BufferView& indicesAccessorBufferView = model.bufferViews[indicesAccessor.bufferView];
-    const tinygltf::Buffer& indicesBuffer = model.buffers[indicesAccessorBufferView.buffer];
+    mPrimitiveMode = primitives.mode;
+    LoadIndexBuffers(model, primitives);
 
-    glGenBuffers(1, &mEBO);
-    glBindBuffer(indicesAccessorBufferView.target, mEBO);
-    glBufferData(indicesAccessorBufferView.target, indicesAccessorBufferView.byteLength,
-                 &indicesBuffer.data.at(0) + indicesAccessorBufferView.byteOffset, GL_STATIC_DRAW);
-
-    mIndexComponentType = indicesAccessor.componentType;
-    mIndexCount = indicesAccessor.count;
-
-    for(size_t i = 0; i < model.bufferViews.size(); ++i)
+    for(auto& a : primitives.attributes)
     {
-        const tinygltf::BufferView &bufferView = model.bufferViews[i];
-        if(bufferView.target == 0) continue;
+        const tinygltf::Accessor& accessor = model.accessors[a.second];
+        const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+        const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+        int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+        int size = accessor.type;
 
-        const tinygltf::Buffer &buffer = model.buffers[bufferView.buffer];
-
-        // vertices as per gltf spec
-        if(bufferView.target == 34962)
+        if(a.first == "POSITION")
         {
-            int vboIndex = mVBOs.size();
-            mVBOs.resize(vboIndex + 1);
-            glGenBuffers(1, &mVBOs[vboIndex]);
-            glBindBuffer(bufferView.target, mVBOs[vboIndex]);
+            glGenBuffers(1, &mVBOs[POSITION]);
+            glBindBuffer(bufferView.target, mVBOs[POSITION]);
             glBufferData(bufferView.target, bufferView.byteLength,
-                    &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(POSITION);
+            glVertexAttribPointer(POSITION, size, accessor.componentType,
+                                  accessor.normalized ? GL_TRUE : GL_FALSE,
+                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+        }
+        else if(a.first == "NORMAL")
+        {
+            glGenBuffers(1, &mVBOs[NORMAL]);
+            glBindBuffer(bufferView.target, mVBOs[NORMAL]);
+            glBufferData(bufferView.target, bufferView.byteLength,
+                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(NORMAL);
+            glVertexAttribPointer(NORMAL, size, accessor.componentType,
+                                  accessor.normalized ? GL_TRUE : GL_FALSE,
+                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+        }
+        else if(a.first == "TEXCOORD_0")
+        {
+            glGenBuffers(1, &mVBOs[TEXEL]);
+            glBindBuffer(bufferView.target, mVBOs[TEXEL]);
+            glBufferData(bufferView.target, bufferView.byteLength,
+                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
+
+            glEnableVertexAttribArray(TEXEL);
+            glVertexAttribPointer(TEXEL, size, accessor.componentType,
+                                  accessor.normalized ? GL_TRUE : GL_FALSE,
+                                  stride, BUFFER_OFFSET(accessor.byteOffset));
         }
     }
 
-    // TODO : how many sets of primitives per mesh are there?
-    for(size_t i = 0; i < mesh.primitives.size(); ++i)
+    tinygltf::Material mat = model.materials[primitives.material];
+
+    auto pbrMetallicRoughness = mat.pbrMetallicRoughness;
+
+    // there is a texture for this material, load it
+    if(pbrMetallicRoughness.baseColorTexture.index > -1)
     {
-        tinygltf::Primitive primitive = mesh.primitives[i];
-        for(auto& attrib : primitive.attributes)
-        {
-            tinygltf::Accessor accessor = model.accessors[attrib.second];
-            tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
-            int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+        int textureIndex = pbrMetallicRoughness.baseColorTexture.index;
+        tinygltf::Texture &tex = model.textures[textureIndex];
 
-            // TODO : this needs to be adjusted...do I iterate through all VBOs?
+        tinygltf::Image &image = model.images[tex.source];
+        tinygltf::Sampler samp = model.samplers[tex.sampler];
 
-            int size = 1;
-            if(accessor.type != TINYGLTF_TYPE_SCALAR)
-            {
-                size = accessor.type;
-            }
+        Texture texture {image, samp };
 
-            int vaa = -1;
-            if (attrib.first == "POSITION")
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
-                vaa = 0;
-            }
-            if (attrib.first == "NORMAL")
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[0]);
-                vaa = 1;
-            }
-            if (attrib.first == "TEXCOORD_0")
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, mVBOs[1]);
-                vaa = 2;
-            }
-            if (vaa > -1)
-            {
-                glEnableVertexAttribArray(vaa);
-                glVertexAttribPointer(vaa, size, accessor.componentType,
-                        accessor.normalized ? GL_TRUE : GL_FALSE,
-                        stride, BUFFER_OFFSET(accessor.byteOffset));
-            }
+        Material m{
+            mat.name,
+            sp,
+            PBRMetallicRoughness{
+                Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                texture,
+                sp}};
 
-            mPrimitiveMode = primitive.mode;
-        }
+        mMaterial = m;
+    }
+    else
+    {
+        glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
 
-        tinygltf::Material mat = model.materials[primitive.material];
+        auto b = pbrMetallicRoughness.baseColorFactor;
 
-        auto pbrMetallicRoughness = mat.pbrMetallicRoughness;
+        bcf.r = b[0];
+        bcf.g = b[1];
+        bcf.b = b[2];
+        bcf.a = b[3];
 
-        // there is a texture for this material, load it
-        if(pbrMetallicRoughness.baseColorTexture.index > -1)
-        {
-            int textureIndex = pbrMetallicRoughness.baseColorTexture.index;
-            tinygltf::Texture &tex = model.textures[textureIndex];
-
-            tinygltf::Image &image = model.images[tex.source];
-            tinygltf::Sampler samp = model.samplers[tex.sampler];
-
-            Texture texture {image, samp };
-
-            Material m{
+        // TODO : what happens if material name is empty
+        Material m{
                 mat.name,
                 sp,
                 PBRMetallicRoughness{
-                    Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                    texture,
-                    sp}};
+                        Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                        Uniform<glm::vec4>(glm::vec4{bcf}, "roughnessMap"),
+                        sp}};
 
-            mMaterial = m;
-        }
-        else
-        {
-            glm::vec4 bcf = glm::vec4{0.0f, 0.0f, 0.0f, 0.0f};
-
-            auto b = pbrMetallicRoughness.baseColorFactor;
-
-            bcf.r = b[0];
-            bcf.g = b[1];
-            bcf.b = b[2];
-            bcf.a = b[3];
-
-            // TODO : what happens if material name is empty
-            Material m{
-                    mat.name,
-                    sp,
-                    PBRMetallicRoughness{
-                            Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                            Uniform<glm::vec4>(glm::vec4{bcf}, "roughnessMap"),
-                            sp}};
-
-            mMaterial = m;
-        }
+        mMaterial = m;
     }
 }
 
@@ -153,6 +129,26 @@ Mesh::Mesh(std::vector<Vertex3> v)
 void Mesh::BindUniforms() const
 {
     mMaterial.BindUniforms();
+}
+
+void Mesh::LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+{
+    const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
+    const tinygltf::BufferView& indicesAccessorBufferView = model.bufferViews[indicesAccessor.bufferView];
+    const tinygltf::Buffer& indicesBuffer = model.buffers[indicesAccessorBufferView.buffer];
+
+    glGenBuffers(1, &mEBO);
+    glBindBuffer(indicesAccessorBufferView.target, mEBO);
+    glBufferData(indicesAccessorBufferView.target, indicesAccessorBufferView.byteLength,
+                 &indicesBuffer.data.at(0) + indicesAccessorBufferView.byteOffset, GL_STATIC_DRAW);
+
+    mIndexComponentType = indicesAccessor.componentType;
+    mIndexCount = indicesAccessor.count;
+}
+
+void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primitive &primitive)
+{
+
 }
 
 Mesh::~Mesh()
