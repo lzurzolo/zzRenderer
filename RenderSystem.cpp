@@ -97,12 +97,11 @@ void RenderSystem::Draw()
     for(auto& rc : mRenderComponents)
     {
         rc.second.mModel->mModelMatrix.Bind();
-        glBindVertexArray(rc.second.mModel->VAO());
         auto meshes = rc.second.mModel->GetMeshes();
         for(const auto& mesh : meshes)
         {
+            glBindVertexArray(mesh.VAO());
             mesh.BindUniforms();
-
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
             glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), 0);
         }
@@ -179,7 +178,6 @@ int main(int argc, char* argv[])
     {
         ShaderSystem ss;
         glm::mat4 model = glm::mat4(1.0f);
-
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 proj = glm::mat4(1.0f);
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
@@ -187,7 +185,7 @@ int main(int argc, char* argv[])
 
         ShaderProgram sp = ss.GetShader("basic_textured");
 
-        Model m = rs.AddModel("BoxTextured.gltf", sp);
+        Model m = rs.AddModel("Terrain.gltf", sp);
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));
@@ -199,9 +197,9 @@ int main(int argc, char* argv[])
 
         auto rc1 = rs.AddRenderComponent("box", RenderComponent{"box", std::make_shared<Model>(m)});
         glm::mat4 model2 = glm::mat4(1.0f);
-        //model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, 10.0f));
-        model2 = glm::rotate(model2, 45.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-        model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
+        //model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -50.0f));
+        //model2 = glm::rotate(model2, 45.0f, glm::vec3(0.5f, 1.0f, 0.0f));
+        //model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
         rc1.mModel->mModelMatrix.Update(model2);
 
         while(running)

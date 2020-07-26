@@ -10,23 +10,61 @@
 #define POSITION 0
 #define NORMAL 1
 #define TEXEL 2
-
+#define TANGENT 3
 
 Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp)
-: mVBO(-1)
-, mEBO(-1)
+: mEBO(-1)
+, mVAO(-1)
 , mCurrentShader(sp)
 {
+    glGenVertexArrays(1, &mVAO);
+    glBindVertexArray(mVAO);
     const tinygltf::Primitive& primitives = mesh.primitives[0];
     mPrimitiveMode = primitives.mode;
     LoadIndexBuffers(model, primitives);
+    LoadVertexBuffers(model, primitives);
+    LoadMaterials(model, primitives);
+    glBindVertexArray(0);
+}
 
-    for(auto& a : primitives.attributes)
+Mesh::Mesh(std::string meshName)
+{
+
+}
+
+Mesh::Mesh(std::vector<Vertex3> v)
+{
+    mVertices = v;
+}
+
+void Mesh::BindUniforms() const
+{
+    mMaterial.BindUniforms();
+}
+
+void Mesh::LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+{
+    const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
+    const tinygltf::BufferView& indicesAccessorBufferView = model.bufferViews[indicesAccessor.bufferView];
+    const tinygltf::Buffer& indicesBuffer = model.buffers[indicesAccessorBufferView.buffer];
+
+    glGenBuffers(1, &mEBO);
+    glBindBuffer(indicesAccessorBufferView.target, mEBO);
+    glBufferData(indicesAccessorBufferView.target, indicesAccessorBufferView.byteLength,
+                 &indicesBuffer.data.at(0) + indicesAccessorBufferView.byteOffset, GL_STATIC_DRAW);
+
+    mIndexComponentType = indicesAccessor.componentType;
+    mIndexCount = indicesAccessor.count;
+}
+
+void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primitive &primitive)
+{
+    for(auto& a : primitive.attributes)
     {
         const tinygltf::Accessor& accessor = model.accessors[a.second];
         const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
         const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
-        int stride = accessor.ByteStride(model.bufferViews[accessor.bufferView]);
+        int stride = accessor.ByteStride(bufferView);
         int size = accessor.type;
 
         if(a.first == "POSITION")
@@ -65,9 +103,24 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
                                   accessor.normalized ? GL_TRUE : GL_FALSE,
                                   stride, BUFFER_OFFSET(accessor.byteOffset));
         }
-    }
+        else if(a.first == "TANGENT")
+        {
+            glGenBuffers(1, &mVBOs[TANGENT]);
+            glBindBuffer(bufferView.target, mVBOs[TANGENT]);
+            glBufferData(bufferView.target, bufferView.byteLength,
+                         &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
 
-    tinygltf::Material mat = model.materials[primitives.material];
+            glEnableVertexAttribArray(TANGENT);
+            glVertexAttribPointer(TANGENT, size, accessor.componentType,
+                                  accessor.normalized ? GL_TRUE : GL_FALSE,
+                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+        }
+    }
+}
+
+void Mesh::LoadMaterials(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
+{
+    tinygltf::Material mat = model.materials[primitive.material];
 
     auto pbrMetallicRoughness = mat.pbrMetallicRoughness;
 
@@ -75,20 +128,19 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
     if(pbrMetallicRoughness.baseColorTexture.index > -1)
     {
         int textureIndex = pbrMetallicRoughness.baseColorTexture.index;
-        tinygltf::Texture &tex = model.textures[textureIndex];
-
-        tinygltf::Image &image = model.images[tex.source];
+        const tinygltf::Texture &tex = model.textures[textureIndex];
+        const tinygltf::Image &image = model.images[tex.source];
         tinygltf::Sampler samp = model.samplers[tex.sampler];
 
-        Texture texture {image, samp };
+        Texture texture {image, samp};
 
         Material m{
-            mat.name,
-            sp,
-            PBRMetallicRoughness{
-                Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
-                texture,
-                sp}};
+                mat.name,
+                mCurrentShader,
+                PBRMetallicRoughness{
+                        Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
+                        texture,
+                        mCurrentShader}};
 
         mMaterial = m;
     }
@@ -106,49 +158,14 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
         // TODO : what happens if material name is empty
         Material m{
                 mat.name,
-                sp,
+                mCurrentShader,
                 PBRMetallicRoughness{
                         Uniform<float>(pbrMetallicRoughness.metallicFactor, "metallicFactor"),
                         Uniform<glm::vec4>(glm::vec4{bcf}, "roughnessMap"),
-                        sp}};
+                        mCurrentShader}};
 
         mMaterial = m;
     }
-}
-
-Mesh::Mesh(std::string meshName)
-{
-
-}
-
-Mesh::Mesh(std::vector<Vertex3> v)
-{
-    mVertices = v;
-}
-
-void Mesh::BindUniforms() const
-{
-    mMaterial.BindUniforms();
-}
-
-void Mesh::LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive)
-{
-    const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
-    const tinygltf::BufferView& indicesAccessorBufferView = model.bufferViews[indicesAccessor.bufferView];
-    const tinygltf::Buffer& indicesBuffer = model.buffers[indicesAccessorBufferView.buffer];
-
-    glGenBuffers(1, &mEBO);
-    glBindBuffer(indicesAccessorBufferView.target, mEBO);
-    glBufferData(indicesAccessorBufferView.target, indicesAccessorBufferView.byteLength,
-                 &indicesBuffer.data.at(0) + indicesAccessorBufferView.byteOffset, GL_STATIC_DRAW);
-
-    mIndexComponentType = indicesAccessor.componentType;
-    mIndexCount = indicesAccessor.count;
-}
-
-void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primitive &primitive)
-{
-
 }
 
 Mesh::~Mesh()
@@ -159,7 +176,6 @@ static tinygltf::TinyGLTF gLoader;
 Model::Model(const std::string& modelName, const ShaderProgram& sp)
 : mModelMatrix(glm::mat4(1.0f), "model")
 , mName(modelName)
-, mVAO(-1)
 , mCurrentShader(sp)
 {
     auto modelNameTokenized = zzUtil::SplitString(modelName, '.');
@@ -192,20 +208,12 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
         return;
     }
 
-    glGenVertexArrays(1, &mVAO);
-    glBindVertexArray(mVAO);
-
     const tinygltf::Scene& scene = model.scenes[model.defaultScene];
     for(auto& n : scene.nodes)
     {
         assert((n >= 0) && (n < model.nodes.size()));
         BindModelNodes(model, model.nodes[scene.nodes[n]]);
-        //auto mat = model.nodes[scene.nodes[n]].matrix;
-        //glm::mat4 matrix = glm::make_mat4(mat.data());
-        //mModelMatrix.Update(matrix);
     }
-
-    glBindVertexArray(0);
 
     mModelMatrix.SetLocation(sp.GetUniformLocation(mModelMatrix.Name()));
 }

@@ -33,11 +33,12 @@ public:
     [[nodiscard]] GLint     IndexCount() const { return mIndexCount; }
     void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
     void                    BindUniforms() const;
+    [[nodiscard]] GLuint    VAO() const { return mVAO; }
 
 private:
     std::vector<Vertex3>    mVertices;
-    GLuint                  mVBO{};
-    std::array<GLuint, 3>   mVBOs;
+    GLuint                  mVAO;
+    std::array<GLuint, 4>   mVBOs;
     GLuint                  mEBO{};
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};
@@ -46,6 +47,7 @@ private:
     ShaderProgram           mCurrentShader;
     void                    LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
     void                    LoadVertexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+    void                    LoadMaterials(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
 };
 
 class Model
@@ -54,7 +56,6 @@ public:
                             Model(const std::string& modelName, const ShaderProgram& sp);
                             ~Model();
 
-    [[nodiscard]] GLuint    VAO() const { return mVAO; }
     std::vector<Mesh>&      GetMeshes() { return mMeshes; }
     Uniform<glm::mat4>      mModelMatrix;
     void                    SetShaderProgram(const ShaderProgram& sp) { mCurrentShader = sp; }
@@ -65,7 +66,6 @@ private:
     std::string             mName;
     ShaderProgram           mCurrentShader;
     std::vector<Mesh>       mMeshes;
-    GLuint                  mVAO;
     void                    BindModelNodes(tinygltf::Model &model, tinygltf::Node &node);
     void                    BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
 };
