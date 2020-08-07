@@ -6,7 +6,6 @@
 #include <filesystem>
 #include "Model.hpp"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 #define POSITION 0
 #define NORMAL 1
 #define TEXEL 2
@@ -77,7 +76,7 @@ void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primi
             glEnableVertexAttribArray(POSITION);
             glVertexAttribPointer(POSITION, size, accessor.componentType,
                                   accessor.normalized ? GL_TRUE : GL_FALSE,
-                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+                                  stride, (void*)accessor.byteOffset);
         }
         else if(a.first == "NORMAL")
         {
@@ -89,7 +88,7 @@ void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primi
             glEnableVertexAttribArray(NORMAL);
             glVertexAttribPointer(NORMAL, size, accessor.componentType,
                                   accessor.normalized ? GL_TRUE : GL_FALSE,
-                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+                                  stride, (void*)accessor.byteOffset);
         }
         else if(a.first == "TEXCOORD_0")
         {
@@ -101,7 +100,7 @@ void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primi
             glEnableVertexAttribArray(TEXEL);
             glVertexAttribPointer(TEXEL, size, accessor.componentType,
                                   accessor.normalized ? GL_TRUE : GL_FALSE,
-                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+                                  stride, (void*)accessor.byteOffset);
         }
         else if(a.first == "TANGENT")
         {
@@ -113,7 +112,7 @@ void Mesh::LoadVertexBuffers(const tinygltf::Model &model, const tinygltf::Primi
             glEnableVertexAttribArray(TANGENT);
             glVertexAttribPointer(TANGENT, size, accessor.componentType,
                                   accessor.normalized ? GL_TRUE : GL_FALSE,
-                                  stride, BUFFER_OFFSET(accessor.byteOffset));
+                                  stride, (void*)accessor.byteOffset);
         }
     }
 }
