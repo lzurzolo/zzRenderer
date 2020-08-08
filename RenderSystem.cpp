@@ -184,9 +184,9 @@ int main(int argc, char* argv[])
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -10.0f));
         proj = glm::perspective(glm::radians(45.0f), (float)rs.WindowWidth()/(float)rs.WindowHeight(), 0.1f, 100.0f);
 
-        ShaderProgram sp = ss.GetShader("basic_textured");
+        ShaderProgram sp = ss.GetShader("basic");
 
-        Model m = rs.AddModel("WaterBottle.gltf", sp);
+        Model m = rs.AddModel("cube.obj", sp);
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
         projectionMatrix.SetLocation(sp.GetUniformLocation(projectionMatrix.Name()));
         projectionMatrix.Bind();
 
-        auto rc1 = rs.AddRenderComponent("bottle", RenderComponent{"bottle", std::make_shared<Model>(m)});
+        auto rc1 = rs.AddRenderComponent("cube", RenderComponent{"cube", std::make_shared<Model>(m)});
         glm::mat4 model2 = glm::mat4(1.0f);
         //model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -50.0f));
         //model2 = glm::rotate(model2, 45.0f, glm::vec3(0.5f, 1.0f, 0.0f));

@@ -11,6 +11,9 @@
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 #include "tiny_gltf.h"
 #include "Vertex3.hpp"
 #include "ShaderProgram.hpp"
@@ -23,7 +26,8 @@ class Mesh
 public:
                             Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp);
     explicit                Mesh(std::string meshName);
-    explicit                Mesh(std::vector<Vertex3> v);
+    explicit                Mesh(aiMesh* mesh, const aiScene* scene, const ShaderProgram& sp);
+    explicit                Mesh(std::vector<Vertex3> v, std::vector<unsigned int> i, const ShaderProgram& sp);
                             ~Mesh();
 
     std::vector<Vertex3>&   Vertices() { return mVertices; }
@@ -37,9 +41,11 @@ public:
 
 private:
     std::vector<Vertex3>    mVertices;
+    std::vector<unsigned int> mIndices;
     GLuint                  mVAO;
     std::array<GLuint, 4>   mVBOs;
     GLuint                  mEBO{};
+    GLuint                  mVBO{};
     GLint                   mPrimitiveMode{};
     GLint                   mIndexComponentType{};
     GLint                   mIndexCount{};
@@ -48,6 +54,8 @@ private:
     void                    LoadIndexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
     void                    LoadVertexBuffers(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
     void                    LoadMaterials(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+    void                    LoadMaterials(aiMesh* mesh, const aiScene* scene);
+    void                    LoadBuffers();
 };
 
 class Model
@@ -67,7 +75,10 @@ private:
     ShaderProgram           mCurrentShader;
     std::vector<Mesh>       mMeshes;
     void                    BindModelNodes(tinygltf::Model &model, tinygltf::Node &node);
-    void                    BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh);
+    void                    BindMeshGLTF(tinygltf::Model &model, tinygltf::Mesh &mesh);
+    void                    LoadGLTF(tinygltf::Model& model);
+    void                    LoadAssimp(const Assimp::Importer& importer, const aiScene* scene);
+    void                    BindModelNodesAssimp(aiNode* node, const aiScene* scene);
 };
 
 #endif //ZZRENDERER_MODEL_HPP

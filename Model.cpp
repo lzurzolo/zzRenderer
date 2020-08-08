@@ -26,14 +26,59 @@ Mesh::Mesh(tinygltf::Model &model, tinygltf::Mesh &mesh, const ShaderProgram& sp
     glBindVertexArray(0);
 }
 
+Mesh::Mesh(aiMesh* mesh, const aiScene* scene, const ShaderProgram& sp)
+: mEBO(-1)
+, mVAO(-1)
+, mCurrentShader(sp)
+{
+    bool hasTexels = true;
+    if(!mesh->mTextureCoords[0])
+    {
+        hasTexels = false;
+    }
+    for(unsigned int i = 0; i < mesh->mNumVertices; i++)
+    {
+        auto p = mesh->mVertices[i];
+        auto n = mesh->mNormals[i];
+
+        glm::vec3 pos = glm::vec3(p.x, p.y, p.z);
+        glm::vec3 normals = glm::vec3(n.x, n.y, n.z);
+
+        glm::vec2 texels = glm::vec2(0.0f, 0.0f);
+        if(hasTexels)
+        {
+            auto t = mesh->mTextureCoords[0][i];
+            texels = glm::vec2(t.x, t.y);
+        }
+        mVertices.push_back({pos, normals, texels});
+    }
+
+    for(unsigned int i = 0; i < mesh->mNumFaces; i++)
+    {
+        aiFace face = mesh->mFaces[i];
+        for(unsigned int j = 0; j < face.mNumIndices; j++)
+        {
+            mIndices.push_back(face.mIndices[j]);
+        }
+    }
+
+    LoadBuffers();
+}
+
 Mesh::Mesh(std::string meshName)
 {
 
 }
 
-Mesh::Mesh(std::vector<Vertex3> v)
+Mesh::Mesh(std::vector<Vertex3> v, std::vector<unsigned int> i, const ShaderProgram& sp)
+: mEBO(-1)
+, mVAO(-1)
+, mCurrentShader(sp)
 {
     mVertices = v;
+    mIndices = i;
+
+    LoadBuffers();
 }
 
 void Mesh::BindUniforms() const
@@ -167,6 +212,32 @@ void Mesh::LoadMaterials(const tinygltf::Model& model, const tinygltf::Primitive
     }
 }
 
+void Mesh::LoadMaterials(aiMesh* mesh, const aiScene* scene)
+{
+
+}
+
+void Mesh::LoadBuffers()
+{
+    glGenVertexArrays(1, &mVAO);
+    glGenBuffers(1, &mVBO);
+    glGenBuffers(1, &mEBO);
+    glBindVertexArray(mVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, mVertices.size() * sizeof(Vertex3), mVertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int), mIndices.data(), GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(POSITION);
+    glVertexAttribPointer(POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)0);
+    glEnableVertexAttribArray(NORMAL);
+    glVertexAttribPointer(NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)offsetof(Vertex3, normal));
+    glEnableVertexAttribArray(TEXEL);
+    glVertexAttribPointer(TEXEL, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)offsetof(Vertex3, texel));
+}
+
 Mesh::~Mesh()
 = default;
 
@@ -179,40 +250,46 @@ Model::Model(const std::string& modelName, const ShaderProgram& sp)
 {
     auto modelNameTokenized = zzUtil::SplitString(modelName, '.');
     std::string subDir = modelNameTokenized[0];
-
-    tinygltf::Model model;
-    std::string err;
-    std::string warn;
+    std::string extension = modelNameTokenized[1];
 
     std::filesystem::path p = std::filesystem::current_path();
     p /= "../meshes/";
     p /= subDir;
     p /= modelName;
 
-    bool ret = gLoader.LoadASCIIFromFile(&model, &err, &warn, p);
-
-    if(!warn.empty())
+    if(extension == "gltf")
     {
-        std::cout << "Warning: " << warn << std::endl;
+        tinygltf::Model model;
+        std::string err;
+        std::string warn;
+
+        bool ret = gLoader.LoadASCIIFromFile(&model, &err, &warn, p);
+
+        if(!warn.empty())
+        {
+            std::cout << "Warning: " << warn << std::endl;
+        }
+
+        if(!err.empty())
+        {
+            std::cout << "Error: " << err << std::endl;
+        }
+
+        if(!ret)
+        {
+            std::cout << "Could not parse " << modelName << std::endl;
+            return;
+        }
+
+        LoadGLTF(model);
+    }
+    else
+    {
+        Assimp::Importer importer;
+        LoadAssimp(importer, importer.ReadFile(p, aiProcess_Triangulate | aiProcess_FlipUVs));
     }
 
-    if(!err.empty())
-    {
-        std::cout << "Error: " << err << std::endl;
-    }
 
-    if(!ret)
-    {
-        std::cout << "Could not parse " << modelName << std::endl;
-        return;
-    }
-
-    const tinygltf::Scene& scene = model.scenes[model.defaultScene];
-    for(auto& n : scene.nodes)
-    {
-        assert((n >= 0) && (n < model.nodes.size()));
-        BindModelNodes(model, model.nodes[scene.nodes[n]]);
-    }
 
     mModelMatrix.SetLocation(sp.GetUniformLocation(mModelMatrix.Name()));
 }
@@ -224,7 +301,7 @@ void Model::BindModelNodes(tinygltf::Model &model, tinygltf::Node &node)
 {
     if ((node.mesh >= 0) && (node.mesh < model.meshes.size()))
     {
-        BindMesh(model, model.meshes[node.mesh]);
+        BindMeshGLTF(model, model.meshes[node.mesh]);
     }
 
     for (int n : node.children)
@@ -234,7 +311,7 @@ void Model::BindModelNodes(tinygltf::Model &model, tinygltf::Node &node)
     }
 }
 
-void Model::BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
+void Model::BindMeshGLTF(tinygltf::Model &model, tinygltf::Mesh &mesh)
 {
     mMeshes.push_back({model, mesh, mCurrentShader});
 }
@@ -242,4 +319,41 @@ void Model::BindMesh(tinygltf::Model &model, tinygltf::Mesh &mesh)
 void Model::BindUniforms() const
 {
     mModelMatrix.Bind();
+}
+
+void Model::LoadGLTF(tinygltf::Model& model)
+{
+    const tinygltf::Scene& scene = model.scenes[model.defaultScene];
+
+    for(auto& n : scene.nodes)
+    {
+        assert((n >= 0) && (n < model.nodes.size()));
+        BindModelNodes(model, model.nodes[scene.nodes[n]]);
+    }
+}
+
+void Model::LoadAssimp(const Assimp::Importer& importer, const aiScene* scene)
+{
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
+        std::cout << "Assimp error" << importer.GetErrorString() << std::endl;
+        EXIT_FAILURE;
+    }
+
+    BindModelNodesAssimp(scene->mRootNode, scene);
+}
+
+void Model::BindModelNodesAssimp(aiNode* node, const aiScene* scene)
+{
+    for(unsigned int i = 0; i < node->mNumMeshes; i++)
+    {
+        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        Mesh m {mesh, scene, mCurrentShader};
+        mMeshes.push_back(m);
+    }
+
+    for(unsigned int i = 0; i < node->mNumChildren; i++)
+    {
+        BindModelNodesAssimp(node->mChildren[i], scene);
+    }
 }
