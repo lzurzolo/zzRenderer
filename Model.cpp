@@ -219,6 +219,10 @@ void Mesh::LoadMaterials(aiMesh* mesh, const aiScene* scene)
 
 void Mesh::LoadBuffers()
 {
+    for(auto v : mVertices)
+    {
+        std::cout << v.position.x << ", " << v.position.y << ", " << v.position.z << std::endl;
+    }
     glGenVertexArrays(1, &mVAO);
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mEBO);
@@ -229,6 +233,8 @@ void Mesh::LoadBuffers()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mIndices.size() * sizeof(unsigned int), mIndices.data(), GL_STATIC_DRAW);
+
+    mIndexCount = mIndices.size();
 
     glEnableVertexAttribArray(POSITION);
     glVertexAttribPointer(POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex3), (void*)0);

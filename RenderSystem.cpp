@@ -104,7 +104,8 @@ void RenderSystem::Draw()
             glBindVertexArray(mesh.VAO());
             mesh.BindUniforms();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
-            glDrawElements(mesh.PrimitiveMode(), mesh.IndexCount(), mesh.IndexComponentType(), (void*)0);
+
+            glDrawElements(GL_TRIANGLES, mesh.IndexCount(), GL_UNSIGNED_INT, 0);
         }
     }
 }
@@ -198,9 +199,7 @@ int main(int argc, char* argv[])
 
         auto rc1 = rs.AddRenderComponent("cube", RenderComponent{"cube", std::make_shared<Model>(m)});
         glm::mat4 model2 = glm::mat4(1.0f);
-        //model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -50.0f));
-        //model2 = glm::rotate(model2, 45.0f, glm::vec3(0.5f, 1.0f, 0.0f));
-        //model2 = glm::scale(model2, glm::vec3(2.0f, 2.0f, 2.0f));
+        model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -10.0f));
         rc1.mModel->mModelMatrix.Update(model2);
 
         while(running)

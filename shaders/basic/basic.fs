@@ -7,12 +7,5 @@ uniform vec4 roughness;
 
 void main()
 {
-    if(metallicFactor < 0.5)
-    {
-        FragColor = roughness;
-    }
-    else
-    {
-        FragColor = roughness * metallicFactor;
-    }
+    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }
