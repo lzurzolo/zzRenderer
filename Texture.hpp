@@ -8,6 +8,17 @@
 #include <GL/glew.h>
 #include "tiny_gltf.h"
 
+enum class TextureType
+{
+    ALBEDO,
+    NORMAL,
+    HEIGHT,
+    METALNESS,
+    ROUGHNESS,
+    OCCLUSION,
+    EMISSION
+};
+
 class Texture
 {
 public:

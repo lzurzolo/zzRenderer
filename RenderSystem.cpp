@@ -104,7 +104,6 @@ void RenderSystem::Draw()
             glBindVertexArray(mesh.VAO());
             mesh.BindUniforms();
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO());
-
             glDrawElements(GL_TRIANGLES, mesh.IndexCount(), GL_UNSIGNED_INT, 0);
         }
     }
@@ -187,7 +186,7 @@ int main(int argc, char* argv[])
 
         ShaderProgram sp = ss.GetShader("basic");
 
-        Model m = rs.AddModel("cube.obj", sp);
+        Model m = rs.AddModel("Rock_7.fbx", sp);
 
         Uniform<glm::mat4> viewMatrix{view, "view"};
         viewMatrix.SetLocation(sp.GetUniformLocation(viewMatrix.Name()));
@@ -199,7 +198,7 @@ int main(int argc, char* argv[])
 
         auto rc1 = rs.AddRenderComponent("cube", RenderComponent{"cube", std::make_shared<Model>(m)});
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -10.0f));
+        model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -70.0f));
         rc1.mModel->mModelMatrix.Update(model2);
 
         while(running)

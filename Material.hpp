@@ -7,6 +7,7 @@
 
 #include <string>
 #include <variant>
+#include <map>
 #include <glm/glm.hpp>
 #include "ShaderUniform.hpp"
 #include "ShaderProgram.hpp"
@@ -48,18 +49,19 @@ struct PBRMetallicRoughness
 class Material
 {
 public:
-                                Material();
-    explicit                    Material(const std::string& name, const ShaderProgram& sp, const PBRMetallicRoughness& pbrmr);
-                                ~Material();
-    [[nodiscard]] std::string   Name() const { return mName; }
-    void                        SetName(std::string name) { mName = name; }
-    void                        SetPBRMetallicRoughness(const PBRMetallicRoughness& pbrmr) { mMetallicRoughness = pbrmr; }
-    void                        BindUniforms() const;
+                                    Material();
+    explicit                        Material(const std::string& name, const ShaderProgram& sp, const PBRMetallicRoughness& pbrmr);
+                                    ~Material();
+    [[nodiscard]] std::string       Name() const { return mName; }
+    void                            SetName(std::string name) { mName = name; }
+    void                            SetPBRMetallicRoughness(const PBRMetallicRoughness& pbrmr) { mMetallicRoughness = pbrmr; }
+    void                            BindUniforms() const;
 
 private:
-    std::string                 mName;
-    ShaderProgram               mCurrentShader;
-    PBRMetallicRoughness        mMetallicRoughness;
+    std::string                     mName;
+    ShaderProgram                   mCurrentShader;
+    PBRMetallicRoughness            mMetallicRoughness;
+    std::map<TextureType, Texture>  mTextures;
 };
 
 #endif //ZZRENDERER_MATERIAL_HPP

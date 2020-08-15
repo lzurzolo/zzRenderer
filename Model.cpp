@@ -63,6 +63,7 @@ Mesh::Mesh(aiMesh* mesh, const aiScene* scene, const ShaderProgram& sp)
     }
 
     LoadBuffers();
+    if(scene->mNumMaterials > 0) LoadMaterials(mesh, scene);
 }
 
 Mesh::Mesh(std::string meshName)
@@ -214,15 +215,23 @@ void Mesh::LoadMaterials(const tinygltf::Model& model, const tinygltf::Primitive
 
 void Mesh::LoadMaterials(aiMesh* mesh, const aiScene* scene)
 {
-
+    auto mat =  scene->mMaterials[mesh->mMaterialIndex];
+    aiString str;
+    auto albedo = mat->GetTexture(aiTextureType_BASE_COLOR, 0, &str);
+    auto ao = mat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &str);
+    printf("%s\n", str.C_Str());
+    std::cout << str.C_Str() << std::endl;
+    // base color/albedo
+    // normal map
+    // roughness
+    // height map
+    // metalness
+    // occlusion
+    // emission
 }
 
 void Mesh::LoadBuffers()
 {
-    for(auto v : mVertices)
-    {
-        std::cout << v.position.x << ", " << v.position.y << ", " << v.position.z << std::endl;
-    }
     glGenVertexArrays(1, &mVAO);
     glGenBuffers(1, &mVBO);
     glGenBuffers(1, &mEBO);
